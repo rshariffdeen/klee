@@ -2983,6 +2983,7 @@ void Executor::run(ExecutionState &initialState) {
       LocHit.erase(0, pos + delimiter.length());
     }
     hit_list.insert(LocHit);
+    LocHit = "ACTIVE";
   }
 
 
