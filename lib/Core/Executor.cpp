@@ -150,6 +150,12 @@ cl::opt<bool> DebugCompressInstructions(
 
 cl::opt<bool> DebugCheckForImpliedValues("debug-check-for-implied-values");
 
+
+cl::opt<bool> DisableMemoryCheck(
+    "dis-mem-check", cl::init(false),
+    cl::desc(
+        "Switch off memory violation checking (default=off)"));
+
 cl::opt<bool> PrintTrace(
     "print-trace", cl::init(false),
     cl::desc(
@@ -4206,8 +4212,10 @@ void Executor::executeMemoryOperation(
     if (incomplete) {
       terminateStateEarly(*unbound, "Query timed out (resolve).");
     } else {
-      terminateStateOnError(*unbound, "memory error: out of bound pointer", Ptr,
-                            NULL, getAddressInfo(*unbound, address));
+      if (!DisableMemoryCheck) {
+        terminateStateOnError(*unbound, "memory error: out of bound pointer",
+                              Ptr, NULL, getAddressInfo(*unbound, address));
+      }
     }
   }
 }
