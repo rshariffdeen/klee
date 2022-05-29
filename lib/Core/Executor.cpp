@@ -1167,6 +1167,7 @@ const Cell &Executor::eval(KInstruction *ki, unsigned index,
 
 void Executor::bindLocal(KInstruction *target, ExecutionState &state,
                          ref<Expr> value) {
+  specialFunctionHandler->trackTaint(state, target, value);
   getDestCell(state, target).value = value;
 }
 
