@@ -40,6 +40,7 @@ static const char *ppcPrefix = "PartialPathCondition";
 static const char *exprPrefix = "VariableExpression";
 static const char *tracePrefix = "TRACE";
 static const char *concretePrefix = "CONCRETE";
+static const char *taintPrefix = "TaintTrack";
 
 
 namespace {
@@ -187,7 +188,7 @@ void klee::klee_log_trace(const char *msg, ...) {
 void klee::klee_log_taint(const char *msg, ...) {
   va_list ap;
   va_start(ap, msg);
-  klee_vmessage(exprPrefix, true, 5, msg, ap);
+  klee_vmessage(taintPrefix, true, 5, msg, ap);
   va_end(ap);
 }
 
