@@ -4150,7 +4150,6 @@ void Executor::executeMemoryOperation(
         }
       } else {
         ref<Expr> result = os->read(offset, type);
-        handleTaintExpr(state, target, result);
         if (interpreterOpts.MakeConcreteSymbolic)
           result = replaceReadWithSymbolic(state, result);
 
