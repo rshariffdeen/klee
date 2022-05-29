@@ -94,6 +94,7 @@ namespace klee {
     /* Convenience routines */
 
     std::string readStringAtAddress(ExecutionState &state, ref<Expr> address);
+    void trackTaint(ExecutionState &state,KInstruction *target,ref<Expr> value);
     
     /* Handlers */
 
@@ -126,7 +127,6 @@ namespace klee {
     HANDLER(handleNewArray);
     HANDLER(handlePreferCex);
     HANDLER(handlePosixPreferCex);
-    HANDLER(handleTaintExpr);
     HANDLER(handlePrintExpr);
     HANDLER(handlePrintStatement);
     HANDLER(handlePrintRange);
