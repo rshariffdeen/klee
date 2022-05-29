@@ -359,6 +359,11 @@ KleeHandler::KleeHandler(int argc, char **argv)
   if ((klee_trace_file = fopen(file_path.c_str(), "w")) == NULL)
     klee_error("cannot open file \"%s\": %s", file_path.c_str(), strerror(errno));
 
+  // open taint.log
+  file_path = getOutputFilename("taint.log");
+  if ((klee_taint_file = fopen(file_path.c_str(), "w")) == NULL)
+    klee_error("cannot open file \"%s\": %s", file_path.c_str(), strerror(errno));
+
   // open info
   m_infoFile = openOutputFile("info");
 }
@@ -371,6 +376,7 @@ KleeHandler::~KleeHandler() {
   fclose(klee_ppc_file);
   fclose(klee_expr_file);
   fclose(klee_trace_file);
+  fclose(klee_taint_file);
   fclose(klee_concrete_file);
 }
 

@@ -491,6 +491,27 @@ void SpecialFunctionHandler::handlePosixPreferCex(ExecutionState &state,
     return handlePreferCex(state, target, arguments);
 }
 
+
+void SpecialFunctionHandler::handleTaintExpr(ExecutionState &state,
+                                             KInstruction *target,
+                                             std::vector<ref<Expr> > &arguments) {
+
+  std::string msg_str = readStringAtAddress(state, arguments[0]);
+  std::string Str;
+  llvm::raw_string_ostream info(Str);
+  ExprSMTLIBPrinter printer;
+  printer.setOutput(info);
+  const ref<Expr> expr = arguments[1];
+  ExprSMTLIBPrinter::SMTLIB_SORT sort = printer.getSort(expr);
+  printer.printExpression(expr, sort);
+  //  printer.generateOutput();
+  std::string res = info.str();
+  //  llvm::errs() << msg_str << ":" << res << "\n";
+  std::string log_message = target->getSourceLocation() +  ": " + msg_str + " : " + res + "\n";
+  klee_log_taint(log_message.c_str());
+
+}
+
 void SpecialFunctionHandler::handlePrintExpr(ExecutionState &state,
                                   KInstruction *target,
                                   std::vector<ref<Expr> > &arguments) {

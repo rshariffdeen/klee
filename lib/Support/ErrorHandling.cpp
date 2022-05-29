@@ -29,6 +29,7 @@ FILE *klee::klee_ppc_file = NULL;
 FILE *klee::klee_expr_file = NULL;
 FILE *klee::klee_trace_file = NULL;
 FILE *klee::klee_concrete_file = NULL;
+FILE *klee::klee_taint_file = NULL;
 
 
 static const char *warningPrefix = "WARNING";
@@ -137,6 +138,8 @@ static void klee_vmessage(const char *pfx, bool onlyToFile, int log_mode, const 
     klee_vfmessage(klee_trace_file, pfx, msg, ap);
   else if(log_mode == 4)
     klee_vfmessage(klee_concrete_file, pfx, msg, ap);
+  else if(log_mode == 5)
+    klee_vfmessage(klee_taint_file, pfx, msg, ap);
   else
    klee_vfmessage(pfx ? klee_warning_file : klee_message_file, pfx, msg, ap);
 }
@@ -177,6 +180,14 @@ void klee::klee_log_trace(const char *msg, ...) {
   va_list ap;
   va_start(ap, msg);
   klee_vmessage(tracePrefix, true, 3, msg, ap);
+  va_end(ap);
+}
+
+/* Log Taint to file */
+void klee::klee_log_taint(const char *msg, ...) {
+  va_list ap;
+  va_start(ap, msg);
+  klee_vmessage(exprPrefix, true, 5, msg, ap);
   va_end(ap);
 }
 
