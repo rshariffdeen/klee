@@ -3326,7 +3326,7 @@ void Executor::terminateStateOnError(ExecutionState &state,
   if (EmitAllErrors ||
       emittedErrors.insert(std::make_pair(lastInst, message)).second) {
     if (ii.file != "") {
-      klee_message("ERROR: %s:%d:%d:%d %s", ii.file.c_str(), ii.line,
+      klee_message("ERROR: %s:%d:%d:%d: %s", ii.file.c_str(), ii.line,
                    ii.column, ii.assemblyLine,
                    message.c_str());
     } else {
