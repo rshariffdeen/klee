@@ -27,16 +27,19 @@ namespace klee {
     unsigned id;
     const std::string &file;
     unsigned line;
+    unsigned column;
     unsigned assemblyLine;
 
   public:
     InstructionInfo(unsigned _id,
                     const std::string &_file,
                     unsigned _line,
+                    unsigned _column,
                     unsigned _assemblyLine)
       : id(_id), 
         file(_file),
         line(_line),
+        column(_column),
         assemblyLine(_assemblyLine) {
     }
   };
@@ -56,7 +59,7 @@ namespace klee {
   private:
     const std::string *internString(std::string s);
     bool getInstructionDebugInfo(const llvm::Instruction *I,
-                                 const std::string *&File, unsigned &Line);
+                                 const std::string *&File, unsigned &Line, unsigned  &Column);
 
   public:
     InstructionInfoTable(llvm::Module *m);

@@ -92,16 +92,18 @@ static std::string getDSPIPath(const DILocation &Loc) {
 
 bool InstructionInfoTable::getInstructionDebugInfo(const llvm::Instruction *I, 
                                                    const std::string *&File,
-                                                   unsigned &Line) {
+                                                   unsigned &Line, unsigned &Column) {
   if (MDNode *N = I->getMetadata("dbg")) {
 #if LLVM_VERSION_CODE >= LLVM_VERSION(3, 7)
     DILocation *Loc = cast<DILocation>(N);
     File = internString(getDSPIPath(*Loc));
     Line = Loc->getLine();
+    Column = Loc->getColumn();
 #else
     DILocation Loc(N);
     File = internString(getDSPIPath(Loc));
     Line = Loc.getLineNumber();
+    Column = Loc->getColumn();
 #endif
     return true;
   }
@@ -110,7 +112,7 @@ bool InstructionInfoTable::getInstructionDebugInfo(const llvm::Instruction *I,
 }
 
 InstructionInfoTable::InstructionInfoTable(Module *m) 
-  : dummyString(""), dummyInfo(0, dummyString, 0, 0) {
+  : dummyString(""), dummyInfo(0, dummyString, 0, 0, 0) {
   unsigned id = 0;
   std::map<const Instruction*, unsigned> lineTable;
   buildInstructionToLineMap(m, lineTable);
@@ -126,23 +128,25 @@ InstructionInfoTable::InstructionInfoTable(Module *m)
     // if any.
     const std::string *initialFile = &dummyString;
     unsigned initialLine = 0;
+    unsigned initialColumn = 0;
     for (inst_iterator it = inst_begin(fn), ie = inst_end(fn); it != ie; ++it) {
-      if (getInstructionDebugInfo(&*it, initialFile, initialLine))
+      if (getInstructionDebugInfo(&*it, initialFile, initialLine, initialColumn))
         break;
     }
 
     const std::string *file = initialFile;
     unsigned line = initialLine;
+    unsigned column = initialColumn;
     for (inst_iterator it = inst_begin(fn), ie = inst_end(fn); it != ie;
         ++it) {
       Instruction *instr = &*it;
       unsigned assemblyLine = lineTable[instr];
 
       // Update our source level debug information.
-      getInstructionDebugInfo(instr, file, line);
+      getInstructionDebugInfo(instr, file, line, column);
 
       infos.insert(std::make_pair(instr,
-                                  InstructionInfo(id++, *file, line,
+                                  InstructionInfo(id++, *file, line, column,
                                                   assemblyLine)));
     }
   }

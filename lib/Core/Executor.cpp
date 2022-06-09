@@ -3326,7 +3326,7 @@ void Executor::terminateStateOnError(ExecutionState &state,
   if (EmitAllErrors ||
       emittedErrors.insert(std::make_pair(lastInst, message)).second) {
     if (ii.file != "") {
-      klee_message("ERROR: %s:%d: %s", ii.file.c_str(), ii.line,
+      klee_message("ERROR: %s:%d:%d: %s", ii.file.c_str(), ii.line, ii.column,
                    message.c_str());
     } else {
       klee_message("ERROR: (location information missing) %s", message.c_str());
@@ -3340,6 +3340,7 @@ void Executor::terminateStateOnError(ExecutionState &state,
     if (ii.file != "") {
       msg << "File: " << ii.file << "\n";
       msg << "Line: " << ii.line << "\n";
+      msg << "Column: " << ii.column << "\n";
       msg << "assembly.ll line: " << ii.assemblyLine << "\n";
     }
 
