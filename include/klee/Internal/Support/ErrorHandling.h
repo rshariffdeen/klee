@@ -27,6 +27,7 @@ extern FILE *klee_expr_file;
 extern FILE *klee_trace_file;
 extern FILE *klee_concrete_file;
 extern FILE *klee_taint_file;
+extern FILE *klee_memory_file;
 
 /// Print "KLEE: ERROR: " followed by the msg in printf format and a
 /// newline on stderr and to warnings.txt, then exit with an error.
@@ -59,6 +60,10 @@ __attribute__((format(printf, 1, 2)));
 
 /// Log Taint
 void klee_log_taint(const char *msg, ...)
+    __attribute__((format(printf, 1, 2)));
+
+/// Log Memory
+void klee_log_memory(const char *msg, ...)
     __attribute__((format(printf, 1, 2)));
 
 /// Print "KLEE: WARNING: " followed by the msg in printf format and a
