@@ -517,7 +517,7 @@ void SpecialFunctionHandler::trackTaint(ExecutionState &state,
   }
 
   if (source_loc.find("/klee", 0) == std::string::npos) {
-    std::string log_message = source_loc + ": " + type + " : " + res + "\n";
+    std::string log_message = source_loc + " : " + type + " : " + res + "\n";
     klee_log_taint(log_message.c_str());
   }
 
