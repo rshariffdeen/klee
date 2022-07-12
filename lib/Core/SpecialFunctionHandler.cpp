@@ -592,7 +592,7 @@ void SpecialFunctionHandler::handlePrintStatement(ExecutionState &state,
 
   std::string msg_str = readStringAtAddress(state, arguments[0]);
 //  printer.generateOutput();
-  llvm::errs() << msg_str << "\n";
+  klee_log_expr(msg_str.c_str());
 
 }
 
