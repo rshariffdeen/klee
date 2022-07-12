@@ -3904,6 +3904,7 @@ void Executor::executeAlloc(ExecutionState &state, ref<Expr> size, bool isLocal,
                             const ObjectState *reallocFrom) {
   //    errs() << "\n[executeAlloc]\n";
   size = toUnique(state, size);
+
   if (ConstantExpr *CE = dyn_cast<ConstantExpr>(size)) {
     const llvm::Value *allocSite = state.prevPC->inst;
     size_t allocationAlignment = getAllocationAlignment(allocSite);
@@ -3921,7 +3922,7 @@ void Executor::executeAlloc(ExecutionState &state, ref<Expr> size, bool isLocal,
         os->initializeToRandom();
       }
       bindLocal(target, state, mo->getBaseExpr());
-
+      specialFunctionHandler->trackMemory(state, mo->getBaseExpr(), size);
       if (reallocFrom) {
         unsigned count = std::min(reallocFrom->size, os->size);
         for (unsigned i = 0; i < count; i++)
@@ -3987,6 +3988,7 @@ void Executor::executeAlloc(ExecutionState &state, ref<Expr> size, bool isLocal,
           klee_message("NOTE: found huge malloc, returning 0");
           bindLocal(target, *hugeSize.first,
                     ConstantExpr::alloc(0, Context::get().getPointerWidth()));
+
         }
 
         if (hugeSize.second) {
@@ -4028,8 +4030,11 @@ void Executor::executeFree(ExecutionState &state, ref<Expr> address,
   address = optimizer.optimizeExpr(address, true);
   StatePair zeroPointer = fork(state, Expr::createIsZero(address), true);
   if (zeroPointer.first) {
-    if (target)
+    if (target) {
       bindLocal(target, *zeroPointer.first, Expr::createPointer(0));
+      specialFunctionHandler->trackMemory(state, address, Expr::createPointer(0));
+    }
+
   }
   if (zeroPointer.second) { // address != 0
     ExactResolutionList rl;
@@ -4046,8 +4051,11 @@ void Executor::executeFree(ExecutionState &state, ref<Expr> address,
                               getAddressInfo(*it->second, address));
       } else {
         it->second->addressSpace.unbindObject(mo);
-        if (target)
+        if (target) {
           bindLocal(target, *it->second, Expr::createPointer(0));
+          specialFunctionHandler->trackMemory(state, address,
+                                              Expr::createPointer(0));
+        }
       }
     }
   }
@@ -4121,6 +4129,8 @@ void Executor::executeMemoryOperation(
 
     ref<Expr> offset = mo->getOffsetExpr(address);
     ref<Expr> check = mo->getBoundsCheckOffset(offset, bytes);
+    specialFunctionHandler->trackMemory(state, address, offset);
+
     //      errs() << "[executeMemoryOperation] check:" << check << "\n";
     //    check = concretizeExpr(state, check);
     check = optimizer.optimizeExpr(check, true);

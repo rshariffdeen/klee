@@ -506,9 +506,18 @@ void SpecialFunctionHandler::trackTaint(ExecutionState &state,
   //  printer.generateOutput();
   std::string res = info.str();
   std::string source_loc = target->getSourceLocation();
+  std::string type;
+
+  if (target->inst->getType()->isFloatTy() || target->inst->getType()->isDoubleTy()) {
+    type = "float";
+  } else  if (target->inst->getType()->isPointerTy()){
+    type = "pointer";
+  } else {
+    type = "integer";
+  }
 
   if (source_loc.find("/klee", 0) == std::string::npos) {
-    std::string log_message = source_loc + " : " + res + "\n";
+    std::string log_message = source_loc + ":" + type + " : " + res + "\n";
     klee_log_taint(log_message.c_str());
   }
 
@@ -516,24 +525,26 @@ void SpecialFunctionHandler::trackTaint(ExecutionState &state,
 
 
 void SpecialFunctionHandler::trackMemory(ExecutionState &state,
-                                        KInstruction *target,
-                                        ref<Expr> value) {
+                                         ref<Expr> address,
+                                         ref<Expr> size) {
 
   std::string Str;
   llvm::raw_string_ostream info(Str);
   ExprSMTLIBPrinter printer;
   printer.setOutput(info);
-  const ref<Expr> expr = value;
-  ExprSMTLIBPrinter::SMTLIB_SORT sort = printer.getSort(expr);
-  printer.printExpression(expr, sort);
-  //  printer.generateOutput();
-  std::string res = info.str();
-  std::string source_loc = target->getSourceLocation();
 
-  if (source_loc.find("/klee", 0) == std::string::npos) {
-    std::string log_message = source_loc + " : " + res + "\n";
-    klee_log_memory(log_message.c_str());
-  }
+  ExprSMTLIBPrinter::SMTLIB_SORT sort_address = printer.getSort(address);
+  printer.printExpression(address, sort_address);
+  std::string address_str = info.str();
+  info.flush();
+
+  ExprSMTLIBPrinter::SMTLIB_SORT sort_size = printer.getSort(size);
+  printer.printExpression(size, sort_size);
+  std::string size_str = info.str();
+
+  std::string log_message = address_str + " : " + size_str + "\n";
+  klee_log_memory(log_message.c_str());
+
 
 }
 
