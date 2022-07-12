@@ -566,7 +566,19 @@ void SpecialFunctionHandler::handlePrintExpr(ExecutionState &state,
 //  printer.generateOutput();
   std::string res = info.str();
 //  llvm::errs() << msg_str << ":" << res << "\n";
+  std::string type;
+
+  if (target->inst->getType()->isFloatTy() || target->inst->getType()->isDoubleTy()) {
+    type = "float";
+  } else  if (target->inst->getType()->isPointerTy()){
+    type = "pointer";
+  } else {
+    type = "integer";
+  }
+
+
   std::string log_message = "\n[klee:expr] " + msg_str + " : " + res + "\n";
+  log_message += "[klee:expr] [var-type]: " + type + "\n";
   klee_log_expr(log_message.c_str());
 
 }
