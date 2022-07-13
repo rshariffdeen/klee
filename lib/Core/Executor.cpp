@@ -4129,7 +4129,7 @@ void Executor::executeMemoryOperation(
 
     ref<Expr> offset = mo->getOffsetExpr(address);
     ref<Expr> check = mo->getBoundsCheckOffset(offset, bytes);
-    specialFunctionHandler->trackMemory(state, target, address, offset);
+//    specialFunctionHandler->trackMemory(state, target, address, offset);
 
     //      errs() << "[executeMemoryOperation] check:" << check << "\n";
     //    check = concretizeExpr(state, check);

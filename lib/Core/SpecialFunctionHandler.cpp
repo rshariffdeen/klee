@@ -540,8 +540,12 @@ void SpecialFunctionHandler::trackMemory(ExecutionState &state, KInstruction *ta
   printer.printExpression(size, sort_size);
 
   llvm::Type *ptr_type = target->inst->getType();
-  llvm:Type *return_type = llvm::dyn_cast<PointerType>(ptr_type)->getPointerElementType();
-  unsigned ptr_width = return_type->getPrimitiveSizeInBits();
+  unsigned ptr_width = 0;
+  if (ptr_type->isPointerTy()){
+    llvm::Type *return_type = llvm::dyn_cast<PointerType>(ptr_type)->getPointerElementType();
+    ptr_width = return_type->getPrimitiveSizeInBits();
+  }
+
   std::string width_str = std::to_string(ptr_width);
 
   std::string log_message = info.str() + "(" + width_str + ")" + "\n";
