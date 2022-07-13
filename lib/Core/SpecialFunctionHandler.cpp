@@ -524,7 +524,7 @@ void SpecialFunctionHandler::trackTaint(ExecutionState &state,
 }
 
 
-void SpecialFunctionHandler::trackMemory(ExecutionState &state,
+void SpecialFunctionHandler::trackMemory(ExecutionState &state, KInstruction *target,
                                          ref<Expr> address,
                                          ref<Expr> size) {
 
@@ -535,14 +535,16 @@ void SpecialFunctionHandler::trackMemory(ExecutionState &state,
 
   ExprSMTLIBPrinter::SMTLIB_SORT sort_address = printer.getSort(address);
   printer.printExpression(address, sort_address);
-  std::string address_str = info.str();
-  info.flush();
 
   ExprSMTLIBPrinter::SMTLIB_SORT sort_size = printer.getSort(size);
   printer.printExpression(size, sort_size);
-  std::string size_str = info.str();
 
-  std::string log_message = address_str + " : " + size_str + "\n";
+  llvm::Type *ptr_type = target->inst->getType();
+  llvm:Type *return_type = llvm::dyn_cast<PointerType>(ptr_type)->getPointerElementType();
+  unsigned ptr_width = return_type->getPrimitiveSizeInBits();
+  std::string width_str = std::to_string(ptr_width);
+
+  std::string log_message = info.str() + "(" + width_str + ")" + "\n";
   klee_log_memory(log_message.c_str());
 
 

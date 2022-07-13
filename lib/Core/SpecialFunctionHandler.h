@@ -95,7 +95,7 @@ namespace klee {
 
     std::string readStringAtAddress(ExecutionState &state, ref<Expr> address);
     void trackTaint(ExecutionState &state,KInstruction *target,ref<Expr> value);
-    void trackMemory(ExecutionState &state,ref<Expr> address,ref<Expr> value);
+    void trackMemory(ExecutionState &state,KInstruction *target, ref<Expr> address,ref<Expr> value);
     
     /* Handlers */
 

@@ -3922,7 +3922,7 @@ void Executor::executeAlloc(ExecutionState &state, ref<Expr> size, bool isLocal,
         os->initializeToRandom();
       }
       bindLocal(target, state, mo->getBaseExpr());
-      specialFunctionHandler->trackMemory(state, mo->getBaseExpr(), size);
+      specialFunctionHandler->trackMemory(state, target, mo->getBaseExpr(), size);
       if (reallocFrom) {
         unsigned count = std::min(reallocFrom->size, os->size);
         for (unsigned i = 0; i < count; i++)
@@ -4032,7 +4032,7 @@ void Executor::executeFree(ExecutionState &state, ref<Expr> address,
   if (zeroPointer.first) {
     if (target) {
       bindLocal(target, *zeroPointer.first, Expr::createPointer(0));
-      specialFunctionHandler->trackMemory(state, address, Expr::createPointer(0));
+      specialFunctionHandler->trackMemory(state, target, address, Expr::createPointer(0));
     }
 
   }
@@ -4053,7 +4053,7 @@ void Executor::executeFree(ExecutionState &state, ref<Expr> address,
         it->second->addressSpace.unbindObject(mo);
         if (target) {
           bindLocal(target, *it->second, Expr::createPointer(0));
-          specialFunctionHandler->trackMemory(state, address,
+          specialFunctionHandler->trackMemory(state, target, address,
                                               Expr::createPointer(0));
         }
       }
@@ -4129,7 +4129,7 @@ void Executor::executeMemoryOperation(
 
     ref<Expr> offset = mo->getOffsetExpr(address);
     ref<Expr> check = mo->getBoundsCheckOffset(offset, bytes);
-    specialFunctionHandler->trackMemory(state, address, offset);
+    specialFunctionHandler->trackMemory(state, target, address, offset);
 
     //      errs() << "[executeMemoryOperation] check:" << check << "\n";
     //    check = concretizeExpr(state, check);
