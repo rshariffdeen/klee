@@ -4207,6 +4207,7 @@ void Executor::executeMemoryOperation(
         } else {
           ObjectState *wos = bound->addressSpace.getWriteable(mo, os);
           wos->write(mo->getOffsetExpr(address), value);
+          specialFunctionHandler->trackTaint(state, mo->getOffsetExpr(address), value);
         }
       } else {
         ref<Expr> result = os->read(mo->getOffsetExpr(address), type);
