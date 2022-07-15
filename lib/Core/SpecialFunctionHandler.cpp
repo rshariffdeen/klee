@@ -137,6 +137,7 @@ static SpecialFunctionHandler::HandlerInfo handlerInfo[] = {
   add("__ubsan_handle_sub_overflow", handleSubOverflow, false),
   add("__ubsan_handle_mul_overflow", handleMulOverflow, false),
   add("__ubsan_handle_divrem_overflow", handleDivRemOverflow, false),
+  add("__ubsan_handle_shift_out_of_bounds", handleShiftOverflow, false),
 
 #undef addDNR
 #undef add
@@ -942,6 +943,14 @@ void SpecialFunctionHandler::handleMulOverflow(ExecutionState &state,
                                                KInstruction *target,
                                                std::vector<ref<Expr> > &arguments) {
   executor.terminateStateOnError(state, "overflow on multiplication",
+                                 Executor::Overflow);
+}
+
+
+void SpecialFunctionHandler::handleShiftOverflow(ExecutionState &state,
+                                               KInstruction *target,
+                                               std::vector<ref<Expr> > &arguments) {
+  executor.terminateStateOnError(state, "overflow on shift operation",
                                  Executor::Overflow);
 }
 
