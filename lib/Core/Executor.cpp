@@ -2322,6 +2322,7 @@ handle it for us, albeit with some overhead. */
   case Instruction::Store: {
     ref<Expr> base = eval(ki, 1, state).value;
     ref<Expr> value = eval(ki, 0, state).value;
+    specialFunctionHandler->trackTaint(state, ki, value);
     executeMemoryOperation(state, true, base, value, 0);
     break;
   }
@@ -4207,7 +4208,6 @@ void Executor::executeMemoryOperation(
         } else {
           ObjectState *wos = bound->addressSpace.getWriteable(mo, os);
           wos->write(mo->getOffsetExpr(address), value);
-          specialFunctionHandler->trackTaint(state, mo->getOffsetExpr(address), value);
         }
       } else {
         ref<Expr> result = os->read(mo->getOffsetExpr(address), type);
