@@ -604,6 +604,7 @@ void Executor::initializeGlobals(ExecutionState &state) {
 
 #ifndef WINDOWS
   int *errno_addr = getErrnoLocation(state);
+
   MemoryObject *errnoObj =
       addExternalObject(state, (void *)errno_addr, sizeof *errno_addr, false);
   // Copy values from and to program space explicitly
@@ -733,7 +734,7 @@ void Executor::initializeGlobals(ExecutionState &state) {
       const ObjectState *os = state.addressSpace.findObject(mo);
       assert(os);
       ObjectState *wos = state.addressSpace.getWriteable(mo, os);
-
+      specialFunctionHandler->trackMemory(state, v->getType(), mo->getBaseExpr(), mo->getSizeExpr());
       initializeGlobalObject(state, wos, i->getInitializer(), 0);
       // if(i->isConstant()) os->setReadOnly(true);
     }
@@ -3915,6 +3916,7 @@ void Executor::executeAlloc(ExecutionState &state, ref<Expr> size, bool isLocal,
     if (!mo) {
       bindLocal(target, state,
                 ConstantExpr::alloc(0, Context::get().getPointerWidth()));
+
     } else {
       ObjectState *os = bindObjectInState(state, mo, isLocal);
       if (zeroMemory) {
@@ -3923,7 +3925,7 @@ void Executor::executeAlloc(ExecutionState &state, ref<Expr> size, bool isLocal,
         os->initializeToRandom();
       }
       bindLocal(target, state, mo->getBaseExpr());
-      specialFunctionHandler->trackMemory(state, target, mo->getBaseExpr(), size);
+      specialFunctionHandler->trackMemory(state, target->inst->getType(), mo->getBaseExpr(), size);
       if (reallocFrom) {
         unsigned count = std::min(reallocFrom->size, os->size);
         for (unsigned i = 0; i < count; i++)
@@ -4033,7 +4035,7 @@ void Executor::executeFree(ExecutionState &state, ref<Expr> address,
   if (zeroPointer.first) {
     if (target) {
       bindLocal(target, *zeroPointer.first, Expr::createPointer(0));
-      specialFunctionHandler->trackMemory(state, target, address, Expr::createPointer(0));
+      specialFunctionHandler->trackMemory(state, target->inst->getType(), address, Expr::createPointer(0));
     }
 
   }
@@ -4054,7 +4056,7 @@ void Executor::executeFree(ExecutionState &state, ref<Expr> address,
         it->second->addressSpace.unbindObject(mo);
         if (target) {
           bindLocal(target, *it->second, Expr::createPointer(0));
-          specialFunctionHandler->trackMemory(state, target, address,
+          specialFunctionHandler->trackMemory(state, target->inst->getType(), address,
                                               Expr::createPointer(0));
         }
       }

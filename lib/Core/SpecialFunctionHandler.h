@@ -100,7 +100,7 @@ namespace klee {
     /* Handlers */
 
 #define HANDLER(name) void name(ExecutionState &state, \
-                                KInstruction *target, \
+                                llvm::Type type, \
                                 std::vector< ref<Expr> > &arguments)
     HANDLER(handleAbort);
     HANDLER(handleAssert);

@@ -525,7 +525,7 @@ void SpecialFunctionHandler::trackTaint(ExecutionState &state,
 }
 
 
-void SpecialFunctionHandler::trackMemory(ExecutionState &state, KInstruction *target,
+void SpecialFunctionHandler::trackMemory(ExecutionState &state, llvm::Type ptr_type,
                                          ref<Expr> address,
                                          ref<Expr> size) {
 
@@ -540,7 +540,7 @@ void SpecialFunctionHandler::trackMemory(ExecutionState &state, KInstruction *ta
   ExprSMTLIBPrinter::SMTLIB_SORT sort_size = printer.getSort(size);
   printer.printExpression(size, sort_size);
 
-  llvm::Type *ptr_type = target->inst->getType();
+//  llvm::Type *ptr_type = target->inst->getType();
   unsigned ptr_width = 0;
   if (ptr_type->isPointerTy()){
     llvm::Type *return_type = llvm::dyn_cast<PointerType>(ptr_type)->getPointerElementType();
