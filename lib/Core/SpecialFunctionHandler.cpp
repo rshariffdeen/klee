@@ -525,7 +525,7 @@ void SpecialFunctionHandler::trackTaint(ExecutionState &state,
 }
 
 
-void SpecialFunctionHandler::trackMemory(ExecutionState &state, llvm::Type ptr_type,
+void SpecialFunctionHandler::trackMemory(ExecutionState &state, llvm::Type *ptr_type,
                                          ref<Expr> address,
                                          ref<Expr> size) {
 

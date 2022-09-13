@@ -95,12 +95,12 @@ namespace klee {
 
     std::string readStringAtAddress(ExecutionState &state, ref<Expr> address);
     void trackTaint(ExecutionState &state,KInstruction *target,ref<Expr> value);
-    void trackMemory(ExecutionState &state,KInstruction *target, ref<Expr> address,ref<Expr> value);
+    void trackMemory(ExecutionState &state, llvm::Type *type, ref<Expr> address,ref<Expr> value);
     
     /* Handlers */
 
 #define HANDLER(name) void name(ExecutionState &state, \
-                                llvm::Type type, \
+                                KInstruction *target,  \
                                 std::vector< ref<Expr> > &arguments)
     HANDLER(handleAbort);
     HANDLER(handleAssert);
