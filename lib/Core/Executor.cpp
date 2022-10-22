@@ -1623,12 +1623,12 @@ static inline const llvm::fltSemantics *fpWidthToSemantics(unsigned width) {
   }
 }
 
-int nthSubstr(int n, const string& s,
-              const string& p) {
-  string::size_type i = s.find(p);     // Find the first occurrence
+int nthSubstr(int n, const std::string& s,
+              const std::string& p) {
+  std::string::size_type i = s.find(p);     // Find the first occurrence
 
   int j;
-  for (j = 1; j < n && i != string::npos; ++j)
+  for (j = 1; j < n && i != std::string::npos; ++j)
     i = s.find(p, i+1); // Find the next occurrence
 
   if (j == n)
