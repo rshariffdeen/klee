@@ -1623,6 +1623,20 @@ static inline const llvm::fltSemantics *fpWidthToSemantics(unsigned width) {
   }
 }
 
+int nthSubstr(int n, const string& s,
+              const string& p) {
+  string::size_type i = s.find(p);     // Find the first occurrence
+
+  int j;
+  for (j = 1; j < n && i != string::npos; ++j)
+    i = s.find(p, i+1); // Find the next occurrence
+
+  if (j == n)
+    return(i);
+  else
+    return(-1);
+}
+
 void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
   Instruction *i = ki->inst;
   std::string sourceLoc = ki->getSourceLocation();
@@ -1638,10 +1652,11 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
           klee_log_trace(log_message.c_str());
         }
       } else if(!LocHit.empty()){
-        if(std::find(hit_list.begin(), hit_list.end(), sourceLoc) != hit_list.end()){
-          std::string log_message = "\n[klee:trace] " + sourceLoc;
+        std::string source_line = sourceLoc.substr(0, nthSubstr(2, sourceLoc, ":"));
+        if(std::find(hit_list.begin(), hit_list.end(), source_line) != hit_list.end()){
+          std::string log_message = "\n[klee:trace] " + source_line;
           klee_log_trace(log_message.c_str());
-          hit_list.erase(sourceLoc);
+          hit_list.erase(source_line);
         }
 
       }
