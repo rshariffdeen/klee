@@ -188,6 +188,14 @@ cl::opt<bool>
                    cl::desc("Log instruction trace with source location as "
                             "and when it's executed (default=off)"));
 
+cl::opt<bool>
+    LogTaint("log-taint", cl::init(false),
+             cl::desc("Log instruction trace with taint sources (default=off)"));
+
+cl::opt<bool>
+    LogMemory("log-memory", cl::init(false),
+             cl::desc("Log instruction trace which memory access (default=off)"));
+
 cl::opt<std::string> LocHit(
             "hit-locations", cl::init(""),
             cl::desc("Log given locations in trace.log if its witnessed (default=log everything)"));
@@ -734,6 +742,7 @@ void Executor::initializeGlobals(ExecutionState &state) {
       const ObjectState *os = state.addressSpace.findObject(mo);
       assert(os);
       ObjectState *wos = state.addressSpace.getWriteable(mo, os);
+      if (LogMemory)
       specialFunctionHandler->trackMemory(state, v->getType(), mo->getBaseExpr(), mo->getSizeExpr());
       initializeGlobalObject(state, wos, i->getInitializer(), 0);
       // if(i->isConstant()) os->setReadOnly(true);
@@ -1168,6 +1177,7 @@ const Cell &Executor::eval(KInstruction *ki, unsigned index,
 
 void Executor::bindLocal(KInstruction *target, ExecutionState &state,
                          ref<Expr> value) {
+  if(LogTaint)
   specialFunctionHandler->trackTaint(state, target, value);
   getDestCell(state, target).value = value;
 }
@@ -2338,6 +2348,7 @@ handle it for us, albeit with some overhead. */
   case Instruction::Store: {
     ref<Expr> base = eval(ki, 1, state).value;
     ref<Expr> value = eval(ki, 0, state).value;
+    if(LogTaint)
     specialFunctionHandler->trackTaint(state, ki, value);
     executeMemoryOperation(state, true, base, value, 0);
     break;
@@ -3940,6 +3951,7 @@ void Executor::executeAlloc(ExecutionState &state, ref<Expr> size, bool isLocal,
         os->initializeToRandom();
       }
       bindLocal(target, state, mo->getBaseExpr());
+      if (LogMemory)
       specialFunctionHandler->trackMemory(state, target->inst->getType(), mo->getBaseExpr(), size);
       if (reallocFrom) {
         unsigned count = std::min(reallocFrom->size, os->size);
@@ -4050,6 +4062,7 @@ void Executor::executeFree(ExecutionState &state, ref<Expr> address,
   if (zeroPointer.first) {
     if (target) {
       bindLocal(target, *zeroPointer.first, Expr::createPointer(0));
+      if (LogMemory)
       specialFunctionHandler->trackMemory(state, target->inst->getType(), address, Expr::createPointer(0));
     }
 
@@ -4071,6 +4084,7 @@ void Executor::executeFree(ExecutionState &state, ref<Expr> address,
         it->second->addressSpace.unbindObject(mo);
         if (target) {
           bindLocal(target, *it->second, Expr::createPointer(0));
+          if (LogMemory)
           specialFunctionHandler->trackMemory(state, target->inst->getType(), address,
                                               Expr::createPointer(0));
         }
@@ -4147,6 +4161,7 @@ void Executor::executeMemoryOperation(
 
     ref<Expr> offset = mo->getOffsetExpr(address);
     ref<Expr> check = mo->getBoundsCheckOffset(offset, bytes);
+ //   if (LogMemory)
 //    specialFunctionHandler->trackMemory(state, target, address, offset);
 
     //      errs() << "[executeMemoryOperation] check:" << check << "\n";
