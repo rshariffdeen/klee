@@ -385,7 +385,7 @@ void ExecutionState::dumpStack(llvm::raw_ostream &out,
     }
     out << ")";
     if (ii.file != "")
-      out << " at " << ii.file << ":" << ii.line;
+      out << " at " << ii.file << ":" << ii.line << ":" << ii.column;
     out << "\n";
     target = sf.caller;
   }
