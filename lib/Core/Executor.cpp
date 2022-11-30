@@ -4258,7 +4258,10 @@ void Executor::executeMemoryOperation(
       terminateStateEarly(*unbound, "Query timed out (resolve).");
     } else {
       if (!DisableMemoryCheck) {
-        terminateStateOnError(*unbound, "memory error: out of bound pointer",
+        std::string errorMsg = "memory read error: out of bound pointer";
+        if (isWrite)
+                errorMsg = "memory write error: out of bound pointer";
+        terminateStateOnError(*unbound, errorMsg,
                               Ptr, NULL, getAddressInfo(*unbound, address));
       }
     }
