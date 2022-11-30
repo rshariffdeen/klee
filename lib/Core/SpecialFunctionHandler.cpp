@@ -138,6 +138,8 @@ static SpecialFunctionHandler::HandlerInfo handlerInfo[] = {
   add("__ubsan_handle_mul_overflow", handleMulOverflow, false),
   add("__ubsan_handle_divrem_overflow", handleDivRemOverflow, false),
   add("__ubsan_handle_shift_out_of_bounds", handleShiftOverflow, false),
+  // -fsanitize=float-cast-overflow
+  add("__ubsan_handle_float_cast_overflow", handleCastOverflow, false),
 
 #undef addDNR
 #undef add
@@ -936,6 +938,13 @@ void SpecialFunctionHandler::handleSubOverflow(ExecutionState &state,
                                                KInstruction *target,
                                                std::vector<ref<Expr> > &arguments) {
   executor.terminateStateOnError(state, "overflow on subtraction",
+                                 Executor::Overflow);
+}
+
+void SpecialFunctionHandler::handleCastOverflow(ExecutionState &state,
+                                               KInstruction *target,
+                                               std::vector<ref<Expr> > &arguments) {
+  executor.terminateStateOnError(state, "overflow on cast",
                                  Executor::Overflow);
 }
 
