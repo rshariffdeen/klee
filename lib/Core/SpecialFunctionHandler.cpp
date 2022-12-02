@@ -548,10 +548,10 @@ void SpecialFunctionHandler::trackPointer(ExecutionState &state,
   else
     type = "POINTER";
 
-  if (source_loc.find("/klee", 0) == std::string::npos) {
-    std::string log_message = source_loc + " : " + type + " : " + res + "\n";
-    klee_log_pointer(log_message.c_str());
-  }
+
+  std::string log_message = source_loc + " : " + type + " : " + res + "\n";
+  klee_log_pointer(log_message.c_str());
+
 
 }
 
