@@ -4264,9 +4264,11 @@ void Executor::executeMemoryOperation(
         std::string errorMsg = "out of bound pointer";
         if (info.str() == "0")
           errorMsg = "null pointer";
-        errorMsg = "memory read error: " + errorMsg;
+
         if (isWrite)
                 errorMsg = "memory write error: " + errorMsg;
+        else
+                errorMsg = "memory read error: " + errorMsg;
         terminateStateOnError(*unbound, errorMsg,
                               Ptr, NULL, getAddressInfo(*unbound, address));
       }
