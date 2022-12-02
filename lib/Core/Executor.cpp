@@ -2361,7 +2361,8 @@ handle it for us, albeit with some overhead. */
   case Instruction::GetElementPtr: {
     KGEPInstruction *kgepi = static_cast<KGEPInstruction *>(ki);
     ref<Expr> base = eval(ki, 0, state).value;
-
+    if (LogPointer)
+    specialFunctionHandler->trackPointer(state, ki, base, true);
     for (std::vector<std::pair<unsigned, uint64_t>>::iterator
              it = kgepi->indices.begin(),
              ie = kgepi->indices.end();
@@ -2375,6 +2376,8 @@ handle it for us, albeit with some overhead. */
     if (kgepi->offset)
       base = AddExpr::create(base, Expr::createPointer(kgepi->offset));
     bindLocal(ki, state, base);
+    if (LogPointer)
+      specialFunctionHandler->trackPointer(state, ki, base, false);
     break;
   }
 
