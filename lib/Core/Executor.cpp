@@ -3940,9 +3940,10 @@ void Executor::executeAlloc(ExecutionState &state, ref<Expr> size, bool isLocal,
         memory->allocate(CE->getZExtValue(), isLocal, /*isGlobal=*/false,
                          allocSite, allocationAlignment);
     if (!mo) {
-      bindLocal(target, state,
-                ConstantExpr::alloc(0, Context::get().getPointerWidth()));
-
+      ref<Expr> base = ConstantExpr::alloc(0, Context::get().getPointerWidth());
+      bindLocal(target, state, base);
+      if (LogMemory)
+        specialFunctionHandler->trackMemory(state, target->inst->getType(), base, size);
     } else {
       ObjectState *os = bindObjectInState(state, mo, isLocal);
       if (zeroMemory) {
