@@ -196,6 +196,10 @@ cl::opt<bool>
     LogMemory("log-memory", cl::init(false),
              cl::desc("Log instruction trace which memory access (default=off)"));
 
+cl::opt<bool>
+    LogPointer("log-pointer", cl::init(false),
+              cl::desc("Log instruction trace pointer analysis (default=off)"));
+
 cl::opt<std::string> LocHit(
             "hit-locations", cl::init(""),
             cl::desc("Log given locations in trace.log if its witnessed (default=log everything)"));
@@ -2402,6 +2406,8 @@ handle it for us, albeit with some overhead. */
     Expr::Width pType = getWidthForLLVMType(ci->getType());
     ref<Expr> arg = eval(ki, 0, state).value;
     bindLocal(ki, state, ZExtExpr::create(arg, pType));
+    if (LogPointer)
+      specialFunctionHandler->trackPointer(state, ki, arg, false);
     break;
   }
   case Instruction::PtrToInt: {
@@ -2409,6 +2415,8 @@ handle it for us, albeit with some overhead. */
     Expr::Width iType = getWidthForLLVMType(ci->getType());
     ref<Expr> arg = eval(ki, 0, state).value;
     bindLocal(ki, state, ZExtExpr::create(arg, iType));
+    if (LogPointer)
+      specialFunctionHandler->trackPointer(state, ki, arg, true);
     break;
   }
 

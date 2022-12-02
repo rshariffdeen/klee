@@ -369,6 +369,12 @@ KleeHandler::KleeHandler(int argc, char **argv)
   if ((klee_memory_file = fopen(file_path.c_str(), "w")) == NULL)
     klee_error("cannot open file \"%s\": %s", file_path.c_str(), strerror(errno));
 
+  // open pointer.log
+  file_path = getOutputFilename("pointer.log");
+  if ((klee_pointer_file = fopen(file_path.c_str(), "w")) == NULL)
+    klee_error("cannot open file \"%s\": %s", file_path.c_str(), strerror(errno));
+
+
   // open info
   m_infoFile = openOutputFile("info");
 }
@@ -383,6 +389,7 @@ KleeHandler::~KleeHandler() {
   fclose(klee_trace_file);
   fclose(klee_taint_file);
   fclose(klee_memory_file);
+  fclose(klee_pointer_file);
   fclose(klee_concrete_file);
 }
 

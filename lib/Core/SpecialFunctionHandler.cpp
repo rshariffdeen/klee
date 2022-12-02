@@ -527,6 +527,35 @@ void SpecialFunctionHandler::trackTaint(ExecutionState &state,
 }
 
 
+void SpecialFunctionHandler::trackPointer(ExecutionState &state,
+                                        KInstruction *target,
+                                        ref<Expr> value, bool isBase) {
+
+  std::string Str;
+  llvm::raw_string_ostream info(Str);
+  ExprSMTLIBPrinter printer;
+  printer.setOutput(info);
+  const ref<Expr> expr = value;
+  ExprSMTLIBPrinter::SMTLIB_SORT sort = printer.getSort(expr);
+  printer.printExpression(expr, sort);
+  //  printer.generateOutput();
+  std::string res = info.str();
+  std::string source_loc = target->getSourceLocation();
+  std::string type;
+
+  if (isBase)
+    type = "BASE";
+  else
+    type = "POINTER"
+
+  if (source_loc.find("/klee", 0) == std::string::npos) {
+    std::string log_message = source_loc + " : " + type + " : " + res + "\n";
+    klee_log_pointer(log_message.c_str());
+  }
+
+}
+
+
 void SpecialFunctionHandler::trackMemory(ExecutionState &state, llvm::Type *ptr_type,
                                          ref<Expr> address,
                                          ref<Expr> size) {

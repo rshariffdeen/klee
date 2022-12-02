@@ -31,6 +31,8 @@ FILE *klee::klee_trace_file = NULL;
 FILE *klee::klee_concrete_file = NULL;
 FILE *klee::klee_taint_file = NULL;
 FILE *klee::klee_memory_file = NULL;
+FILE *klee::klee_pointer_file = NULL;
+
 
 
 static const char *warningPrefix = "WARNING";
@@ -42,6 +44,7 @@ static const char *exprPrefix = "VariableExpression";
 static const char *tracePrefix = "TRACE";
 static const char *concretePrefix = "CONCRETE";
 static const char *taintPrefix = "TaintTrack";
+static const char *pointerPrefix = "PointerTrack";
 static const char *memoryPrefix = "MemoryTrack";
 
 
@@ -145,6 +148,8 @@ static void klee_vmessage(const char *pfx, bool onlyToFile, int log_mode, const 
     klee_vfmessage(klee_taint_file, pfx, msg, ap);
   else if(log_mode == 6)
     klee_vfmessage(klee_memory_file, pfx, msg, ap);
+  else if(log_mode == 7)
+    klee_vfmessage(klee_pointer_file, pfx, msg, ap);
   else
    klee_vfmessage(pfx ? klee_warning_file : klee_message_file, pfx, msg, ap);
 }
@@ -196,11 +201,21 @@ void klee::klee_log_taint(const char *msg, ...) {
   va_end(ap);
 }
 
+
+
 /* Log Memory Changes to file */
 void klee::klee_log_memory(const char *msg, ...) {
   va_list ap;
   va_start(ap, msg);
   klee_vmessage(memoryPrefix, true, 6, msg, ap);
+  va_end(ap);
+}
+
+/* Log Pointers to file */
+void klee::klee_log_pointer(const char *msg, ...) {
+  va_list ap;
+  va_start(ap, msg);
+  klee_vmessage(pointerPrefix, true, 7, msg, ap);
   va_end(ap);
 }
 

@@ -95,6 +95,7 @@ namespace klee {
 
     std::string readStringAtAddress(ExecutionState &state, ref<Expr> address);
     void trackTaint(ExecutionState &state,KInstruction *target,ref<Expr> value);
+    void trackPointer(ExecutionState &state,KInstruction *target,ref<Expr> value, bool isBase);
     void trackMemory(ExecutionState &state, llvm::Type *type, ref<Expr> address,ref<Expr> value);
     
     /* Handlers */
