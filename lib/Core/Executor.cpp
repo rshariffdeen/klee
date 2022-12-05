@@ -746,11 +746,13 @@ void Executor::initializeGlobals(ExecutionState &state) {
       const ObjectState *os = state.addressSpace.findObject(mo);
       assert(os);
       ObjectState *wos = state.addressSpace.getWriteable(mo, os);
-      if (LogMemory)
-      specialFunctionHandler->trackMemory(state, v->getType(),
+      if (LogMemory) {
+        ref<Expr> size_expr = mo->getSizeExpr();
+        specialFunctionHandler->trackMemory(state, v->getType(),
                                             mo->getBaseExpr(),
-                                            mo->getSizeExpr(),
-                                            tounique(mo->getSizeExpr()));
+                                            size_expr,
+                                            toUnique(state, size_expr));
+      }
       initializeGlobalObject(state, wos, i->getInitializer(), 0);
       // if(i->isConstant()) os->setReadOnly(true);
     }
