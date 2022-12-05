@@ -579,6 +579,9 @@ void SpecialFunctionHandler::trackMemory(ExecutionState &state, llvm::Type *ptr_
   }
 
   std::string width_str = std::to_string(ptr_width);
+  ref<Expr> concrete_size = toUnique(state, size);
+  ExprSMTLIBPrinter::SMTLIB_SORT conc_sort_size = printer.getSort(concrete_size);
+  printer.printExpression(concrete_size, conc_sort_size);
 
   std::string log_message = info.str() + "(" + width_str + ")" + "\n";
   klee_log_memory(log_message.c_str());
