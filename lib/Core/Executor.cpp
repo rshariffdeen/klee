@@ -747,7 +747,10 @@ void Executor::initializeGlobals(ExecutionState &state) {
       assert(os);
       ObjectState *wos = state.addressSpace.getWriteable(mo, os);
       if (LogMemory)
-      specialFunctionHandler->trackMemory(state, v->getType(), mo->getBaseExpr(), mo->getSizeExpr());
+      specialFunctionHandler->trackMemory(state, v->getType(),
+                                            mo->getBaseExpr(),
+                                            mo->getSizeExpr(),
+                                            tounique(mo->getSizeExpr()));
       initializeGlobalObject(state, wos, i->getInitializer(), 0);
       // if(i->isConstant()) os->setReadOnly(true);
     }
@@ -3955,7 +3958,8 @@ void Executor::executeAlloc(ExecutionState &state, ref<Expr> size, bool isLocal,
       ref<Expr> base = ConstantExpr::alloc(0, Context::get().getPointerWidth());
       bindLocal(target, state, base);
       if (LogMemory)
-        specialFunctionHandler->trackMemory(state, target->inst->getType(), base, orig_size);
+        specialFunctionHandler->trackMemory(state, target->inst->getType(), base,
+                                            orig_size, size);
     } else {
       ObjectState *os = bindObjectInState(state, mo, isLocal);
       if (zeroMemory) {
@@ -3965,7 +3969,11 @@ void Executor::executeAlloc(ExecutionState &state, ref<Expr> size, bool isLocal,
       }
       bindLocal(target, state, mo->getBaseExpr());
       if (LogMemory)
-      specialFunctionHandler->trackMemory(state, target->inst->getType(), mo->getBaseExpr(), orig_size);
+      specialFunctionHandler->trackMemory(state,
+                                            target->inst->getType(),
+                                            mo->getBaseExpr(),
+                                            orig_size,
+                                            size);
       if (reallocFrom) {
         unsigned count = std::min(reallocFrom->size, os->size);
         for (unsigned i = 0; i < count; i++)
@@ -4074,9 +4082,14 @@ void Executor::executeFree(ExecutionState &state, ref<Expr> address,
   StatePair zeroPointer = fork(state, Expr::createIsZero(address), true);
   if (zeroPointer.first) {
     if (target) {
-      bindLocal(target, *zeroPointer.first, Expr::createPointer(0));
+      ref<Expr> pointer = Expr::createPointer(0);
+      bindLocal(target, *zeroPointer.first, pointer);
       if (LogMemory)
-      specialFunctionHandler->trackMemory(state, target->inst->getType(), address, Expr::createPointer(0));
+      specialFunctionHandler->trackMemory(state,
+                                            target->inst->getType(),
+                                            address,
+                                            pointer,
+                                            pointer);
     }
 
   }
@@ -4099,8 +4112,11 @@ void Executor::executeFree(ExecutionState &state, ref<Expr> address,
           ref<Expr> pointer =  Expr::createPointer(0);
           bindLocal(target, *it->second, pointer);
           if (LogMemory)
-          specialFunctionHandler->trackMemory(state, target->inst->getType(), address,
-                                              pointer);
+          specialFunctionHandler->trackMemory(state,
+                                                target->inst->getType(),
+                                                address,
+                                                pointer,
+                                                pointer);
         }
       }
     }

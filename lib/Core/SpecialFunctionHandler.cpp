@@ -557,8 +557,7 @@ void SpecialFunctionHandler::trackPointer(ExecutionState &state,
 
 
 void SpecialFunctionHandler::trackMemory(ExecutionState &state, llvm::Type *ptr_type,
-                                         ref<Expr> address,
-                                         ref<Expr> size) {
+                                         ref<Expr> address, ref<Expr> sym_size, ref<Expr> con_size) {
 
   std::string Str;
   llvm::raw_string_ostream info(Str);
@@ -568,8 +567,11 @@ void SpecialFunctionHandler::trackMemory(ExecutionState &state, llvm::Type *ptr_
   ExprSMTLIBPrinter::SMTLIB_SORT sort_address = printer.getSort(address);
   printer.printExpression(address, sort_address);
 
-  ExprSMTLIBPrinter::SMTLIB_SORT sort_size = printer.getSort(size);
-  printer.printExpression(size, sort_size);
+  ExprSMTLIBPrinter::SMTLIB_SORT sort_sym_size = printer.getSort(sym_size);
+  printer.printExpression(sym_size, sort_sym_size);
+
+  ExprSMTLIBPrinter::SMTLIB_SORT sort_con_size = printer.getSort(con_size);
+  printer.printExpression(con_size, sort_con_size);
 
 //  llvm::Type *ptr_type = target->inst->getType();
   unsigned ptr_width = 0;
@@ -579,9 +581,8 @@ void SpecialFunctionHandler::trackMemory(ExecutionState &state, llvm::Type *ptr_
   }
 
   std::string width_str = std::to_string(ptr_width);
-  ref<Expr> concrete_size = toUnique(state, size);
-  ExprSMTLIBPrinter::SMTLIB_SORT conc_sort_size = printer.getSort(concrete_size);
-  printer.printExpression(concrete_size, conc_sort_size);
+
+
 
   std::string log_message = info.str() + "(" + width_str + ")" + "\n";
   klee_log_memory(log_message.c_str());
