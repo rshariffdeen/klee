@@ -3942,6 +3942,7 @@ void Executor::executeAlloc(ExecutionState &state, ref<Expr> size, bool isLocal,
                             KInstruction *target, bool zeroMemory,
                             const ObjectState *reallocFrom) {
   //    errs() << "\n[executeAlloc]\n";
+  ref<Expr> orig_size = size;
   size = toUnique(state, size);
 
   if (ConstantExpr *CE = dyn_cast<ConstantExpr>(size)) {
@@ -3954,7 +3955,7 @@ void Executor::executeAlloc(ExecutionState &state, ref<Expr> size, bool isLocal,
       ref<Expr> base = ConstantExpr::alloc(0, Context::get().getPointerWidth());
       bindLocal(target, state, base);
       if (LogMemory)
-        specialFunctionHandler->trackMemory(state, target->inst->getType(), base, size);
+        specialFunctionHandler->trackMemory(state, target->inst->getType(), base, orig_size);
     } else {
       ObjectState *os = bindObjectInState(state, mo, isLocal);
       if (zeroMemory) {
@@ -3964,7 +3965,7 @@ void Executor::executeAlloc(ExecutionState &state, ref<Expr> size, bool isLocal,
       }
       bindLocal(target, state, mo->getBaseExpr());
       if (LogMemory)
-      specialFunctionHandler->trackMemory(state, target->inst->getType(), mo->getBaseExpr(), size);
+      specialFunctionHandler->trackMemory(state, target->inst->getType(), mo->getBaseExpr(), orig_size);
       if (reallocFrom) {
         unsigned count = std::min(reallocFrom->size, os->size);
         for (unsigned i = 0; i < count; i++)
@@ -4095,10 +4096,11 @@ void Executor::executeFree(ExecutionState &state, ref<Expr> address,
       } else {
         it->second->addressSpace.unbindObject(mo);
         if (target) {
-          bindLocal(target, *it->second, Expr::createPointer(0));
+          ref<Expr> pointer =  Expr::createPointer(0);
+          bindLocal(target, *it->second, pointer);
           if (LogMemory)
           specialFunctionHandler->trackMemory(state, target->inst->getType(), address,
-                                              Expr::createPointer(0));
+                                              pointer);
         }
       }
     }
