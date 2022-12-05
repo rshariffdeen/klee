@@ -585,7 +585,7 @@ void SpecialFunctionHandler::trackMemory(ExecutionState &state, llvm::Type *ptr_
 
   std::string width_str = std::to_string(ptr_width);
 
-  std::string log_message = info.str() + "(" + width_str + ")" + "\n";
+  std::string log_message = info.str() + ":" + "(" + width_str + ")" + "\n";
   klee_log_memory(log_message.c_str());
 
 
