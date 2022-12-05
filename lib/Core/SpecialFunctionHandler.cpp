@@ -563,14 +563,17 @@ void SpecialFunctionHandler::trackMemory(ExecutionState &state, llvm::Type *ptr_
   llvm::raw_string_ostream info(Str);
   ExprSMTLIBPrinter printer;
   printer.setOutput(info);
+  printer.setSeperator(":");
 
   ExprSMTLIBPrinter::SMTLIB_SORT sort_address = printer.getSort(address);
   printer.printExpression(address, sort_address);
 
   ExprSMTLIBPrinter::SMTLIB_SORT sort_sym_size = printer.getSort(sym_size);
+  printer.printSeperator();
   printer.printExpression(sym_size, sort_sym_size);
 
   ExprSMTLIBPrinter::SMTLIB_SORT sort_con_size = printer.getSort(con_size);
+  printer.printSeperator();
   printer.printExpression(con_size, sort_con_size);
 
 //  llvm::Type *ptr_type = target->inst->getType();
@@ -581,8 +584,6 @@ void SpecialFunctionHandler::trackMemory(ExecutionState &state, llvm::Type *ptr_
   }
 
   std::string width_str = std::to_string(ptr_width);
-
-
 
   std::string log_message = info.str() + "(" + width_str + ")" + "\n";
   klee_log_memory(log_message.c_str());

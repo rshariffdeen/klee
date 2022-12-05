@@ -80,6 +80,7 @@ class ExprSMTLIBPrinter {
 public:
   /// Different SMTLIBv2 logics supported by this class
   /// \sa setLogic()
+  std::string seperator = " ";
   enum SMTLIBv2Logic {
     QF_ABV,  ///< Logic using Theory of Arrays and Theory of Bitvectors
     QF_AUFBV ///< Logic using Theory of Arrays and Theory of Bitvectors and has
@@ -341,7 +342,7 @@ protected:
   /// keywords
   /// \return A C-string of the SMTLIBv2 keyword
   const char *getSMTLIBKeyword(const ref<Expr> &e);
-
+  void setSeperator(std::string s);
   void printSeperator();
 
   /// Helper function for scan() that scans the expressions of an update node

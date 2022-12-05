@@ -834,11 +834,15 @@ bool ExprSMTLIBPrinter::setLogic(SMTLIBv2Logic l) {
   return true;
 }
 
+void ExprSMTLIBPrinter::setSeperator(std::string sp) {
+  seperator = sp;
+}
+
 void ExprSMTLIBPrinter::printSeperator() {
   if (humanReadable)
     p->breakLineI();
   else
-    p->write(" ");
+    p->write(seperator);
 }
 
 void ExprSMTLIBPrinter::printNotice() {
