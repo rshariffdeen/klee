@@ -570,10 +570,13 @@ void SpecialFunctionHandler::trackMemory(ExecutionState &state, llvm::Type *ptr_
 
   ExprSMTLIBPrinter::SMTLIB_SORT sort_sym_size = printer.getSort(sym_size);
   printer.printSeperator();
+  printer.setSeperator(" ");
   printer.printExpression(sym_size, sort_sym_size);
 
   ExprSMTLIBPrinter::SMTLIB_SORT sort_con_size = printer.getSort(con_size);
+  printer.setSeperator(":");
   printer.printSeperator();
+  printer.setSeperator(" ");
   printer.printExpression(con_size, sort_con_size);
 
 //  llvm::Type *ptr_type = target->inst->getType();
