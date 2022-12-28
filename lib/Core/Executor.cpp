@@ -105,7 +105,7 @@ std::set<std::string> hit_list;
 std::string trace_filter;
 std::map<std::string, int*> var_map;
 std::map<std::string, int*> arg_map;
-std::map<std::string, ref<Expr>> expr_map;
+std::map<long, ref<Expr>> expr_map;
 
 int count_var = 0;
 
@@ -3545,19 +3545,10 @@ ref<Expr> Executor::concretizeExpr(const klee::ExecutionState &state,
   if (isa<ConstantExpr>(expr)) {
     return expr;
   }
-  std::string expr_str;
   if (CacheExpr) {
-    std::string Str;
-    llvm::raw_string_ostream info(Str);
-    ExprSMTLIBPrinter printer;
-    printer.setOutput(info);
-    ExprSMTLIBPrinter::SMTLIB_SORT sort = printer.getSort(expr);
-    printer.printExpression(expr, sort);
-    //  printer.generateOutput();
-    expr_str = info.str();
-
-    if (expr_map.find(expr_str) != expr_map.end()) {
-      return expr_map.find(expr_str)->second;
+    long expr_hash = expr->hash();
+    if (expr_map.find(expr_hash) != expr_map.end()) {
+      return expr_map.find(expr_hash)->second;
     }
   }
 
@@ -3588,7 +3579,7 @@ ref<Expr> Executor::concretizeExpr(const klee::ExecutionState &state,
   (void)success;
 
   if (CacheExpr){
-    expr_map.insert(std::pair<std::string, ref<ConstantExpr>>(expr_str, resolve));
+    expr_map.insert(std::pair<long, ref<ConstantExpr>>(expr_str, resolve));
   }
 
 
