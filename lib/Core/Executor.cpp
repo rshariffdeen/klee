@@ -105,6 +105,7 @@ std::set<std::string> hit_list;
 std::string trace_filter;
 std::map<std::string, int*> var_map;
 std::map<std::string, int*> arg_map;
+std::map<std::string, ref<Expr>> expr_map;
 
 int count_var = 0;
 
@@ -211,6 +212,10 @@ cl::opt<std::string> TraceFilter(
 cl::opt<bool> ResolvePath(
     "resolve-path", cl::init(false),
     cl::desc("In seed mode resolve path using seed values (default=off)"));
+
+cl::opt<bool> CacheExpr(
+    "cache-expr", cl::init(false),
+    cl::desc("In seed mode resolve concretizations use caching (default=off)"));
 
 cl::opt<bool>
     SimplifySymIndices("simplify-sym-indices", cl::init(false),
@@ -3540,6 +3545,22 @@ ref<Expr> Executor::concretizeExpr(const klee::ExecutionState &state,
   if (isa<ConstantExpr>(expr)) {
     return expr;
   }
+  std::string expr_str;
+  if (CacheExpr) {
+    std::string Str;
+    llvm::raw_string_ostream info(Str);
+    ExprSMTLIBPrinter printer;
+    printer.setOutput(info);
+    ExprSMTLIBPrinter::SMTLIB_SORT sort = printer.getSort(expr);
+    printer.printExpression(expr, sort);
+    //  printer.generateOutput();
+    expr_str = info.str();
+
+    if (expr_map.find(expr_str) != expr_map.end()) {
+      return expr_map.find(expr_str)->second;
+    }
+  }
+
 
   if (numKids > 0) {
     ref<Expr> list_child[numKids];
@@ -3565,6 +3586,11 @@ ref<Expr> Executor::concretizeExpr(const klee::ExecutionState &state,
   bool success = solver->getValue(state, expr, resolve);
   assert(success && "FIXME: Unhandled solver failure");
   (void)success;
+
+  if (CacheExpr){
+    expr_map.insert(std::pair<std::string, ref<ConstantExpr>>(expr_str, resolve));
+  }
+
 
   if (!isa<ConstantExpr>(resolve))
     errs() << "\nNON concretized-expr: " << resolve << "\n";

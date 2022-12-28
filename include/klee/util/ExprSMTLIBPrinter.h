@@ -211,6 +211,18 @@ public:
   /// \return True if human readable mode is switched on
   bool isHumanReadable();
 
+  /// Recursively print expression
+  /// \param e is the expression to print
+  /// \param expectedSort is the sort we want. If "e" is not of the right type a
+  /// cast will be performed.
+  /// \param abbrMode the abbreviation mode to use for this expression
+  void printExpression(const ref<Expr> &e, SMTLIB_SORT expectedSort);
+
+
+  /// Determine the SMTLIBv2 sort of the expression
+  SMTLIB_SORT getSort(const ref<Expr> &e);
+
+
 protected:
   /// Contains the arrays found during scans
   std::set<const Array *> usedArrays;
@@ -236,8 +248,6 @@ protected:
   /// The query to print
   const Query *query;
 
-  /// Determine the SMTLIBv2 sort of the expression
-  SMTLIB_SORT getSort(const ref<Expr> &e);
 
   /// Print an expression but cast it to a particular SMTLIBv2 sort first.
   void printCastToSort(const ref<Expr> &e, ExprSMTLIBPrinter::SMTLIB_SORT sort);
@@ -282,12 +292,7 @@ protected:
   /// Mode"
   void printConstant(const ref<ConstantExpr> &e);
 
-  /// Recursively print expression
-  /// \param e is the expression to print
-  /// \param expectedSort is the sort we want. If "e" is not of the right type a
-  /// cast will be performed.
-  /// \param abbrMode the abbreviation mode to use for this expression
-  void printExpression(const ref<Expr> &e, SMTLIB_SORT expectedSort);
+
 
   /// Scan Expression recursively for Arrays in expressions. Found arrays are
   /// added to
