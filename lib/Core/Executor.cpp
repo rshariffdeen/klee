@@ -3579,7 +3579,7 @@ ref<Expr> Executor::concretizeExpr(const klee::ExecutionState &state,
   (void)success;
 
   if (CacheExpr){
-    expr_map.insert(std::pair<long, ref<ConstantExpr>>(expr_str, resolve));
+    expr_map.insert(std::pair<long, ref<ConstantExpr>>(expr->hash(), resolve));
   }
 
 
