@@ -97,7 +97,7 @@ using namespace klee;
 
 namespace {
 cl::opt<bool> DumpStatesOnHalt(
-    "dump-states-on-halt", cl::init(true),
+    "dump-states-on-halt", cl::init(false),
     cl::desc("Dump test cases for all active states on exit (default=on)"));
 
 int *A_data, *A_data_stat;
@@ -3533,6 +3533,7 @@ ref<Expr> Executor::concretizeExpr(const klee::ExecutionState &state,
                                    klee::ref<klee::Expr> &expr) {
   //    errs() << "\n[concretzeExpr]\n";
   //    errs() << "\nconcretizing-expr: " << expr << "\n";
+  TimerStatIncrementer timer(stats::concretizeTime);
   int numKids = expr.get()->getNumKids();
   ref<ConstantExpr> resolve;
 

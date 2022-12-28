@@ -417,6 +417,7 @@ void StatsTracker::writeStatsHeader() {
              << "'ResolveTime',"
              << "'QueryCexCacheMisses',"
              << "'QueryCexCacheHits',"
+             << "'ConcretizeTime',"
 #ifdef KLEE_ARRAY_DEBUG
 	     << "'ArrayHashTime',"
 #endif
@@ -449,6 +450,7 @@ void StatsTracker::writeStatsLine() {
              << "," << time::microseconds(stats::resolveTime).toSeconds()
              << "," << stats::queryCexCacheMisses
              << "," << stats::queryCexCacheHits
+             << "," << time::microseconds(stats::concretizeTime).toSeconds()
 #ifdef KLEE_ARRAY_DEBUG
              << "," << time::microseconds(stats::arrayHashTime).toSeconds()
 #endif

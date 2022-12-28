@@ -12,6 +12,7 @@
 using namespace klee;
 
 Statistic stats::allocations("Allocations", "Alloc");
+Statistic stats::forkTime("ConcretizeTime", "Ctime");
 Statistic stats::coveredInstructions("CoveredInstructions", "Icov");
 Statistic stats::falseBranches("FalseBranches", "Bf");
 Statistic stats::forkTime("ForkTime", "Ftime");
