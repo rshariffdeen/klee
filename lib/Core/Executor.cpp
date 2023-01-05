@@ -100,7 +100,7 @@ cl::opt<bool> DumpStatesOnHalt(
     "dump-states-on-halt", cl::init(false),
     cl::desc("Dump test cases for all active states on exit (default=on)"));
 
-int *A_data, *A_data_stat;
+int *A_data, *A_data_stat, *B_data, *B_data_stat;
 std::set<std::string> hit_list;
 std::string trace_filter;
 std::map<std::string, int*> var_map;
@@ -3060,13 +3060,21 @@ void Executor::run(ExecutionState &initialState) {
           A_data_stat = (int *)malloc(num_bytes * sizeof(int));
           for (int i = 0; i < num_bytes; i++) {
             A_data_stat[i] = obj.bytes[i];
-            //                        printf("%d ", obj.bytes[i]);
           }
         } else if (strcmp(obj.name, "A-data") == 0) {
           A_data = (int *)malloc(num_bytes * sizeof(int));
           for (int i = 0; i < num_bytes; i++) {
             A_data[i] = obj.bytes[i];
-            //                        printf("%d ", A_data[i]);
+          }
+        } else if (strcmp(obj.name, "B-data-stat") == 0) {
+          B_data_stat = (int *)malloc(num_bytes * sizeof(int));
+          for (int i = 0; i < num_bytes; i++) {
+            B_data_stat[i] = obj.bytes[i];
+          }
+        } else if (strcmp(obj.name, "B-data") == 0) {
+          B_data = (int *)malloc(num_bytes * sizeof(int));
+          for (int i = 0; i < num_bytes; i++) {
+            B_data[i] = obj.bytes[i];
           }
         } else if (strstr(obj.name, "arg0")) {
           int value_final = 0;
@@ -3478,11 +3486,18 @@ ref<Expr> Executor::concretizeReadExpr(const ExecutionState &state,
       resolve = ConstantExpr::create(value, width);
       modified = true;
     } else if (name_src == "A-data-stat") {
-      // errs() << "\n\nSTAT COLLECTED\n\n";
       int value = A_data_stat[index];
       resolve = ConstantExpr::create(value, width);
       modified = true;
-    }  else if (strstr(name_src.c_str(), "arg0")) {
+    }  else if (name_src == "B-data") {
+      int value = B_data[index];
+      resolve = ConstantExpr::create(value, width);
+      modified = true;
+    } else if (name_src == "B-data-stat") {
+      int value = B_data_stat[index];
+      resolve = ConstantExpr::create(value, width);
+      modified = true;
+    } else if (strstr(name_src.c_str(), "arg0")) {
       // errs() << "\n\nARG COLLECTED\n\n";
       if (arg_map.find(name_src) != var_map.end()) {
         int value = arg_map.find(name_src)->second[index];
