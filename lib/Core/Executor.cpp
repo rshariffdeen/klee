@@ -3499,7 +3499,7 @@ ref<Expr> Executor::concretizeReadExpr(const ExecutionState &state,
       modified = true;
     } else if (strstr(name_src.c_str(), "arg0")) {
       // errs() << "\n\nARG COLLECTED\n\n";
-      if (arg_map.find(name_src) != var_map.end()) {
+      if (arg_map.find(name_src) != arg_map.end()) {
         int value = arg_map.find(name_src)->second[index];
         resolve = ConstantExpr::create(value, width);
         modified = true;
