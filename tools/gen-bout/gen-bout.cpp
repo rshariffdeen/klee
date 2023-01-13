@@ -207,7 +207,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (file_counter > 0) {
-    char *prefix_list[5] = ["A", "B", "C", "D", "E"];
+    char *prefix_list[5] = {"A", "B", "C", "D", "E"};
     for (int k=0; k<file_counter; k++) {
       FILE *fp;
       struct stat64 file_stat;
