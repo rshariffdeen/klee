@@ -4329,6 +4329,12 @@ void Executor::executeMemoryOperation(
                 errorMsg = "memory write error: " + errorMsg;
         else
                 errorMsg = "memory read error: " + errorMsg;
+        if(LogTaint) {
+                if (!isWrite)
+                    specialFunctionHandler->trackTaint(state, target, address);
+        }
+
+
         terminateStateOnError(*unbound, errorMsg,
                               Ptr, NULL, getAddressInfo(*unbound, address));
       }
