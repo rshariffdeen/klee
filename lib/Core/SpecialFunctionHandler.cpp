@@ -27,6 +27,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/ADT/Twine.h"
 #include "llvm/IR/DataLayout.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 
 #include <errno.h>
 #include <sstream>
@@ -494,6 +495,39 @@ void SpecialFunctionHandler::handlePosixPreferCex(ExecutionState &state,
     return handlePreferCex(state, target, arguments);
 }
 
+void SpecialFunctionHandler::trackTaintArg(ExecutionState &state,
+                                           KFunction *kf, unsigned index,
+                                           ref<Expr> value) {
+
+  std::string Str;
+  llvm::raw_string_ostream info(Str);
+  ExprSMTLIBPrinter printer;
+  printer.setOutput(info);
+  const ref<Expr> expr = value;
+  ExprSMTLIBPrinter::SMTLIB_SORT sort = printer.getSort(expr);
+  printer.printExpression(expr, sort);
+  //  printer.generateOutput();
+  std::string res = info.str();
+
+  DISubprogram *prog = kf->function->getSubprogram();
+  if (prog) {
+    DIScope *scope = cast_or_null<DIScope>(prog->getScope());
+    Argument *arg = kf->function->arg_end() + index;
+    Type *type = (cast<Value>(arg))->getType();
+    std::string type_str = "argument";
+    std::string directory = scope->getFile()->getDirectory();
+    std::string filename = scope->getFile()->getFilename();
+    unsigned line = prog->getLine();
+    unsigned column = index;
+    unsigned address = 0;
+    std::string source_loc = directory + "/" + filename  + ":" + std::to_string(line) +  ":" + std::to_string(column) + ":" + std::to_string(address);
+    if (source_loc.find("/klee", 0) == std::string::npos) {
+      std::string log_message = source_loc + " : " + type_str + " : " + res + "\n";
+      klee_log_taint(log_message.c_str());
+    }
+  }
+
+}
 
 void SpecialFunctionHandler::trackTaint(ExecutionState &state,
                                              KInstruction *target,

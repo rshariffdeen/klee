@@ -1198,6 +1198,8 @@ void Executor::bindLocal(KInstruction *target, ExecutionState &state,
 
 void Executor::bindArgument(KFunction *kf, unsigned index,
                             ExecutionState &state, ref<Expr> value) {
+  if (LogTaint)
+    specialFunctionHandler->trackTaintArg(state, kf, index, value);
   getArgumentCell(state, kf, index).value = value;
 }
 
