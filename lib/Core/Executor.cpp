@@ -763,7 +763,7 @@ void Executor::initializeGlobals(ExecutionState &state) {
       ObjectState *wos = state.addressSpace.getWriteable(mo, os);
       if (LogMemory) {
         ref<Expr> size_expr = mo->getSizeExpr();
-        specialFunctionHandler->trackMemory(state, v->getType(),
+        specialFunctionHandler->logMemory(state, v->getType(),
                                             mo->getBaseExpr(),
                                             size_expr,
                                             toUnique(state, size_expr));
