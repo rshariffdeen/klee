@@ -87,10 +87,11 @@
 #include <vector>
 
 #include <sys/mman.h>
-
+#include <CircularBuffer.h>
 #include <cxxabi.h>
 #include <errno.h>
 
+#define TAINT_BUFFER_SIZE 10000000
 using namespace llvm;
 using namespace klee;
 
@@ -106,6 +107,9 @@ std::string trace_filter;
 std::map<std::string, int*> var_map;
 std::map<std::string, int*> arg_map;
 std::map<long, ref<Expr>> expr_map;
+
+circular_buffer<std::string> taint_buffer(TAINT_BUFFER_SIZE);
+
 
 int count_var = 0;
 
@@ -1189,17 +1193,85 @@ const Cell &Executor::eval(KInstruction *ki, unsigned index,
   }
 }
 
+
+
+void Executor::trackTaintArg(ExecutionState &state,
+                             KFunction *kf, unsigned index,
+                             ref<Expr> value) {
+
+  std::string Str;
+  llvm::raw_string_ostream info(Str);
+  ExprSMTLIBPrinter printer;
+  printer.setOutput(info);
+  const ref<Expr> expr = value;
+  ExprSMTLIBPrinter::SMTLIB_SORT sort = printer.getSort(expr);
+  printer.printExpression(expr, sort);
+  //  printer.generateOutput();
+  std::string res = info.str();
+
+  DISubprogram *prog = kf->function->getSubprogram();
+  if (prog) {
+    DIScope *scope = cast_or_null<DIScope>(prog->getScope());
+    Argument *arg = kf->function->arg_end() + index;
+    Type *type = (cast<Value>(arg))->getType();
+    std::string type_str = "argument";
+    std::string directory = scope->getFile()->getDirectory();
+    std::string filename = scope->getFile()->getFilename();
+    unsigned line = prog->getLine();
+    unsigned column = index;
+    unsigned address = 0;
+    std::string source_loc = directory + "/" + filename  + ":" + std::to_string(line) +  ":" + std::to_string(column) + ":" + std::to_string(address);
+    if (source_loc.find("/klee", 0) == std::string::npos) {
+        std::string log_message = source_loc + " : " + type_str + " : " + res + "\n";
+        taint_buffer.put(log_message);
+    }
+  }
+
+}
+
+void Executor::trackTaint(ExecutionState &state,
+                          KInstruction *target,
+                          ref<Expr> value) {
+
+  std::string Str;
+  llvm::raw_string_ostream info(Str);
+  ExprSMTLIBPrinter printer;
+  printer.setOutput(info);
+  const ref<Expr> expr = value;
+  ExprSMTLIBPrinter::SMTLIB_SORT sort = printer.getSort(expr);
+  printer.printExpression(expr, sort);
+  //  printer.generateOutput();
+  std::string res = info.str();
+  std::string source_loc = target->getSourceLocation();
+  std::string type;
+
+  if (target->inst->getType()->isFloatTy() || target->inst->getType()->isDoubleTy()) {
+    type = "float";
+  } else  if (target->inst->getType()->isPointerTy()){
+    type = "pointer";
+  } else {
+    type = "integer";
+  }
+
+  if (source_loc.find("/klee", 0) == std::string::npos) {
+    std::string log_message = source_loc + " : " + type + " : " + res + "\n";
+    taint_buffer.put(log_message);
+  }
+
+}
+
+
 void Executor::bindLocal(KInstruction *target, ExecutionState &state,
                          ref<Expr> value) {
   if(LogTaint)
-  specialFunctionHandler->trackTaint(state, target, value);
+    trackTaint(state, target, value);
   getDestCell(state, target).value = value;
 }
 
 void Executor::bindArgument(KFunction *kf, unsigned index,
                             ExecutionState &state, ref<Expr> value) {
   if (LogTaint)
-    specialFunctionHandler->trackTaintArg(state, kf, index, value);
+    trackTaintArg(state, kf, index, value);
   getArgumentCell(state, kf, index).value = value;
 }
 
@@ -2365,7 +2437,7 @@ handle it for us, albeit with some overhead. */
     ref<Expr> base = eval(ki, 1, state).value;
     ref<Expr> value = eval(ki, 0, state).value;
     if(LogTaint)
-    specialFunctionHandler->trackTaint(state, ki, value);
+    trackTaint(state, ki, value);
     executeMemoryOperation(state, true, base, value, 0);
     break;
   }
@@ -3274,6 +3346,12 @@ void Executor::terminateState(ExecutionState &state) {
                       "replay did not consume all objects in test input.");
   }
 
+  if (LogTaint){
+    while(!taint_buffer.empty()){
+      specialFunctionHandler->logTaint(taint_buffer.get());
+    }
+  }
+
   interpreterHandler->incPathsExplored();
 
   std::vector<ExecutionState *>::iterator it =
@@ -3376,6 +3454,8 @@ void Executor::terminateStateOnError(ExecutionState &state,
   Instruction *lastInst;
   const InstructionInfo &ii =
       getLastNonKleeInternalInstruction(state, &lastInst);
+
+
 
   if (NoExitOnError) {
     errs() << "\nFound Error!!\n";
@@ -4333,7 +4413,7 @@ void Executor::executeMemoryOperation(
                 errorMsg = "memory read error: " + errorMsg;
         if(LogTaint) {
                 if (!isWrite)
-                    specialFunctionHandler->trackTaint(state, target, address);
+                    trackTaint(state, target, address);
         }
 
 

@@ -271,6 +271,9 @@ private:
   ObjectState *bindObjectInState(ExecutionState &state, const MemoryObject *mo,
                                  bool isLocal, const Array *array = 0);
 
+  void trackTaint(ExecutionState &state,  KInstruction *target, ref<Expr> value);
+  void trackTaintArg(ExecutionState &state, KFunction *kf, unsigned index, ref<Expr> value);
+
   /// Resolve a pointer to the memory objects it could point to the
   /// start of, forking execution when necessary and generating errors
   /// for pointers to invalid locations (either out of bounds or
