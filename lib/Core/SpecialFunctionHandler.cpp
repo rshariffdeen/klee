@@ -500,12 +500,12 @@ void SpecialFunctionHandler::logTaint(std::string log_message) {
 }
 
 
-void SpecialFunctionHandler::trackPointer(std::string log_message) {
+void SpecialFunctionHandler::logPointer(std::string log_message) {
   klee_log_pointer(log_message.c_str());
 }
 
 
-void SpecialFunctionHandler::trackMemory(std::string log_message) {
+void SpecialFunctionHandler::logMemory(std::string log_message) {
   klee_log_memory(log_message.c_str());
 }
 
