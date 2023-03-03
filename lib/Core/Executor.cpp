@@ -763,10 +763,10 @@ void Executor::initializeGlobals(ExecutionState &state) {
       ObjectState *wos = state.addressSpace.getWriteable(mo, os);
       if (LogMemory) {
         ref<Expr> size_expr = mo->getSizeExpr();
-        trackMemory(state, v->getType(),
-                    mo->getBaseExpr(),
-                    size_expr,
-                    toUnique(state, size_expr));
+        specialFunctionHandler->trackMemory(state, v->getType(),
+                                            mo->getBaseExpr(),
+                                            size_expr,
+                                            toUnique(state, size_expr));
       }
       initializeGlobalObject(state, wos, i->getInitializer(), 0);
       // if(i->isConstant()) os->setReadOnly(true);
@@ -1197,44 +1197,6 @@ const Cell &Executor::eval(KInstruction *ki, unsigned index,
     StackFrame &sf = state.stack.back();
     return sf.locals[index];
   }
-}
-
-
-
-void Executor::trackMemory(ExecutionState &state, llvm::Type *ptr_type,
-                                         ref<Expr> address, ref<Expr> sym_size, ref<Expr> con_size) {
-
-  std::string Str;
-  llvm::raw_string_ostream info(Str);
-  ExprSMTLIBPrinter printer;
-  printer.setOutput(info);
-  printer.setSeperator(":");
-
-  ExprSMTLIBPrinter::SMTLIB_SORT sort_address = printer.getSort(address);
-  printer.printExpression(address, sort_address);
-
-  ExprSMTLIBPrinter::SMTLIB_SORT sort_sym_size = printer.getSort(sym_size);
-  printer.printSeperator();
-  printer.setSeperator(" ");
-  printer.printExpression(sym_size, sort_sym_size);
-
-  ExprSMTLIBPrinter::SMTLIB_SORT sort_con_size = printer.getSort(con_size);
-  printer.setSeperator(":");
-  printer.printSeperator();
-  printer.setSeperator(" ");
-  printer.printExpression(con_size, sort_con_size);
-
-  //  llvm::Type *ptr_type = target->inst->getType();
-  unsigned ptr_width = 0;
-  if (ptr_type->isPointerTy()){
-    llvm::Type *return_type = llvm::dyn_cast<PointerType>(ptr_type)->getPointerElementType();
-    ptr_width = return_type->getPrimitiveSizeInBits();
-  }
-
-  std::string width_str = std::to_string(ptr_width);
-  std::string log_message = info.str() + ":" + "(" + width_str + ")" + "\n";
-  memory_buffer.put(log_message);
-
 }
 
 void Executor::trackPointer(ExecutionState &state,
@@ -4151,7 +4113,7 @@ void Executor::executeAlloc(ExecutionState &state, ref<Expr> size, bool isLocal,
       ref<Expr> base = ConstantExpr::alloc(0, Context::get().getPointerWidth());
       bindLocal(target, state, base);
       if (LogMemory)
-        trackMemory(state, target->inst->getType(), base,
+        specialFunctionHandler->logMemory(state, target->inst->getType(), base,
                                             orig_size, size);
     } else {
       ObjectState *os = bindObjectInState(state, mo, isLocal);
@@ -4162,11 +4124,11 @@ void Executor::executeAlloc(ExecutionState &state, ref<Expr> size, bool isLocal,
       }
       bindLocal(target, state, mo->getBaseExpr());
       if (LogMemory)
-      trackMemory(state,
-                    target->inst->getType(),
-                    mo->getBaseExpr(),
-                    orig_size,
-                    size);
+      specialFunctionHandler->logMemory(state,
+                                            target->inst->getType(),
+                                            mo->getBaseExpr(),
+                                            orig_size,
+                                            size);
       if (reallocFrom) {
         unsigned count = std::min(reallocFrom->size, os->size);
         for (unsigned i = 0; i < count; i++)
@@ -4278,11 +4240,11 @@ void Executor::executeFree(ExecutionState &state, ref<Expr> address,
       ref<Expr> pointer = Expr::createPointer(0);
       bindLocal(target, *zeroPointer.first, pointer);
       if (LogMemory)
-      trackMemory(state,
-                    target->inst->getType(),
-                    address,
-                    pointer,
-                    pointer);
+      specialFunctionHandler->logMemory(state,
+                                            target->inst->getType(),
+                                            address,
+                                            pointer,
+                                            pointer);
     }
 
   }
@@ -4305,11 +4267,11 @@ void Executor::executeFree(ExecutionState &state, ref<Expr> address,
           ref<Expr> pointer =  Expr::createPointer(0);
           bindLocal(target, *it->second, pointer);
           if (LogMemory)
-          trackMemory(state,
-                        target->inst->getType(),
-                        address,
-                        pointer,
-                        pointer);
+          specialFunctionHandler->logMemory(state,
+                                              target->inst->getType(),
+                                                address,
+                                                pointer,
+                                                pointer);
         }
       }
     }
@@ -4385,7 +4347,7 @@ void Executor::executeMemoryOperation(
     ref<Expr> offset = mo->getOffsetExpr(address);
     ref<Expr> check = mo->getBoundsCheckOffset(offset, bytes);
  //   if (LogMemory)
-//    specialFunctionHandler->trackMemory(state, target, address, offset);
+//    specialFunctionHandler->logMemory(state, target, address, offset);
 
     //      errs() << "[executeMemoryOperation] check:" << check << "\n";
     //    check = concretizeExpr(state, check);

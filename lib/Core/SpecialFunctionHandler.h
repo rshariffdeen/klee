@@ -97,7 +97,8 @@ namespace klee {
     std::string readStringAtAddress(ExecutionState &state, ref<Expr> address);
     void logTaint(std::string log_msg);
     void logPointer(std::string log_msg);
-    void logMemory(std::string log_msg);
+    void logMemory(ExecutionState &state, llvm::Type *ptr_type,
+                     ref<Expr> address, ref<Expr> sym_size, ref<Expr> con_size);
     
     /* Handlers */
 

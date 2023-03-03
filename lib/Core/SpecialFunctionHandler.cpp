@@ -505,9 +505,42 @@ void SpecialFunctionHandler::logPointer(std::string log_message) {
 }
 
 
-void SpecialFunctionHandler::logMemory(std::string log_message) {
+void SpecialFunctionHandler::logMemory(ExecutionState &state, llvm::Type *ptr_type,
+                           ref<Expr> address, ref<Expr> sym_size, ref<Expr> con_size) {
+
+  std::string Str;
+  llvm::raw_string_ostream info(Str);
+  ExprSMTLIBPrinter printer;
+  printer.setOutput(info);
+  printer.setSeperator(":");
+
+  ExprSMTLIBPrinter::SMTLIB_SORT sort_address = printer.getSort(address);
+  printer.printExpression(address, sort_address);
+
+  ExprSMTLIBPrinter::SMTLIB_SORT sort_sym_size = printer.getSort(sym_size);
+  printer.printSeperator();
+  printer.setSeperator(" ");
+  printer.printExpression(sym_size, sort_sym_size);
+
+  ExprSMTLIBPrinter::SMTLIB_SORT sort_con_size = printer.getSort(con_size);
+  printer.setSeperator(":");
+  printer.printSeperator();
+  printer.setSeperator(" ");
+  printer.printExpression(con_size, sort_con_size);
+
+  //  llvm::Type *ptr_type = target->inst->getType();
+  unsigned ptr_width = 0;
+  if (ptr_type->isPointerTy()){
+    llvm::Type *return_type = llvm::dyn_cast<PointerType>(ptr_type)->getPointerElementType();
+    ptr_width = return_type->getPrimitiveSizeInBits();
+  }
+
+  std::string width_str = std::to_string(ptr_width);
+  std::string log_message = info.str() + ":" + "(" + width_str + ")" + "\n";
   klee_log_memory(log_message.c_str());
+
 }
+
 
 void SpecialFunctionHandler::handlePrintExpr(ExecutionState &state,
                                   KInstruction *target,
