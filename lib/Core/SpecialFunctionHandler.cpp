@@ -497,75 +497,16 @@ void SpecialFunctionHandler::handlePosixPreferCex(ExecutionState &state,
 
 void SpecialFunctionHandler::logTaint(std::string log_message) {
   klee_log_taint(log_message.c_str());
-
 }
 
 
-void SpecialFunctionHandler::trackPointer(ExecutionState &state,
-                                        KInstruction *target,
-                                        ref<Expr> value, bool isBase) {
-
-  std::string Str;
-  llvm::raw_string_ostream info(Str);
-  ExprSMTLIBPrinter printer;
-  printer.setOutput(info);
-  const ref<Expr> expr = value;
-  ExprSMTLIBPrinter::SMTLIB_SORT sort = printer.getSort(expr);
-  printer.printExpression(expr, sort);
-  //  printer.generateOutput();
-  std::string res = info.str();
-  std::string source_loc = target->getSourceLocation();
-  std::string type;
-
-  if (isBase)
-    type = "BASE";
-  else
-    type = "POINTER";
-
-
-  std::string log_message = source_loc + " : " + type + " : " + res + "\n";
+void SpecialFunctionHandler::trackPointer(std::string log_message) {
   klee_log_pointer(log_message.c_str());
-
-
 }
 
 
-void SpecialFunctionHandler::trackMemory(ExecutionState &state, llvm::Type *ptr_type,
-                                         ref<Expr> address, ref<Expr> sym_size, ref<Expr> con_size) {
-
-  std::string Str;
-  llvm::raw_string_ostream info(Str);
-  ExprSMTLIBPrinter printer;
-  printer.setOutput(info);
-  printer.setSeperator(":");
-
-  ExprSMTLIBPrinter::SMTLIB_SORT sort_address = printer.getSort(address);
-  printer.printExpression(address, sort_address);
-
-  ExprSMTLIBPrinter::SMTLIB_SORT sort_sym_size = printer.getSort(sym_size);
-  printer.printSeperator();
-  printer.setSeperator(" ");
-  printer.printExpression(sym_size, sort_sym_size);
-
-  ExprSMTLIBPrinter::SMTLIB_SORT sort_con_size = printer.getSort(con_size);
-  printer.setSeperator(":");
-  printer.printSeperator();
-  printer.setSeperator(" ");
-  printer.printExpression(con_size, sort_con_size);
-
-//  llvm::Type *ptr_type = target->inst->getType();
-  unsigned ptr_width = 0;
-  if (ptr_type->isPointerTy()){
-    llvm::Type *return_type = llvm::dyn_cast<PointerType>(ptr_type)->getPointerElementType();
-    ptr_width = return_type->getPrimitiveSizeInBits();
-  }
-
-  std::string width_str = std::to_string(ptr_width);
-
-  std::string log_message = info.str() + ":" + "(" + width_str + ")" + "\n";
+void SpecialFunctionHandler::trackMemory(std::string log_message) {
   klee_log_memory(log_message.c_str());
-
-
 }
 
 void SpecialFunctionHandler::handlePrintExpr(ExecutionState &state,

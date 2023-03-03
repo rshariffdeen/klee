@@ -273,6 +273,8 @@ private:
 
   void trackTaint(ExecutionState &state,  KInstruction *target, ref<Expr> value);
   void trackTaintArg(ExecutionState &state, KFunction *kf, unsigned index, ref<Expr> value);
+  void trackPointer(ExecutionState &state,KInstruction *target,ref<Expr> value, bool isBase);
+  void trackMemory(ExecutionState &state, llvm::Type *type, ref<Expr> address,ref<Expr> sym_val, ref<Expr> con_val);
 
   /// Resolve a pointer to the memory objects it could point to the
   /// start of, forking execution when necessary and generating errors

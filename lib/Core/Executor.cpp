@@ -92,7 +92,10 @@
 #include <cxxabi.h>
 #include <errno.h>
 
-#define TAINT_BUFFER_SIZE 10000000
+#define MEMORY_BUFFER_SIZE 10000
+#define POINTER_BUFFER_SIZE 100000
+#define TAINT_BUFFER_SIZE 1000000
+
 using namespace llvm;
 using namespace klee;
 
@@ -109,6 +112,8 @@ std::map<std::string, int*> var_map;
 std::map<std::string, int*> arg_map;
 std::map<long, ref<Expr>> expr_map;
 
+circular_buffer<std::string> memory_buffer(MEMORY_BUFFER_SIZE);
+circular_buffer<std::string> pointer_buffer(POINTER_BUFFER_SIZE);
 circular_buffer<std::string> taint_buffer(TAINT_BUFFER_SIZE);
 
 
@@ -1195,6 +1200,68 @@ const Cell &Executor::eval(KInstruction *ki, unsigned index,
 }
 
 
+
+void Executor::trackMemory(ExecutionState &state, llvm::Type *ptr_type,
+                                         ref<Expr> address, ref<Expr> sym_size, ref<Expr> con_size) {
+
+  std::string Str;
+  llvm::raw_string_ostream info(Str);
+  ExprSMTLIBPrinter printer;
+  printer.setOutput(info);
+  printer.setSeperator(":");
+
+  ExprSMTLIBPrinter::SMTLIB_SORT sort_address = printer.getSort(address);
+  printer.printExpression(address, sort_address);
+
+  ExprSMTLIBPrinter::SMTLIB_SORT sort_sym_size = printer.getSort(sym_size);
+  printer.printSeperator();
+  printer.setSeperator(" ");
+  printer.printExpression(sym_size, sort_sym_size);
+
+  ExprSMTLIBPrinter::SMTLIB_SORT sort_con_size = printer.getSort(con_size);
+  printer.setSeperator(":");
+  printer.printSeperator();
+  printer.setSeperator(" ");
+  printer.printExpression(con_size, sort_con_size);
+
+  //  llvm::Type *ptr_type = target->inst->getType();
+  unsigned ptr_width = 0;
+  if (ptr_type->isPointerTy()){
+    llvm::Type *return_type = llvm::dyn_cast<PointerType>(ptr_type)->getPointerElementType();
+    ptr_width = return_type->getPrimitiveSizeInBits();
+  }
+
+  std::string width_str = std::to_string(ptr_width);
+  std::string log_message = info.str() + ":" + "(" + width_str + ")" + "\n";
+  memory_buffer.put(log_message);
+
+}
+
+void Executor::trackPointer(ExecutionState &state,
+                            KInstruction *target,
+                            ref<Expr> value, bool isBase) {
+
+  std::string Str;
+  llvm::raw_string_ostream info(Str);
+  ExprSMTLIBPrinter printer;
+  printer.setOutput(info);
+  const ref<Expr> expr = value;
+  ExprSMTLIBPrinter::SMTLIB_SORT sort = printer.getSort(expr);
+  printer.printExpression(expr, sort);
+  //  printer.generateOutput();
+  std::string res = info.str();
+  std::string source_loc = target->getSourceLocation();
+  std::string type;
+
+  if (isBase)
+    type = "BASE";
+  else
+    type = "POINTER";
+
+  std::string log_message = source_loc + " : " + type + " : " + res + "\n";
+  memory_buffer.put(log_message);
+
+}
 
 void Executor::trackTaintArg(ExecutionState &state,
                              KFunction *kf, unsigned index,
@@ -2447,7 +2514,7 @@ handle it for us, albeit with some overhead. */
     KGEPInstruction *kgepi = static_cast<KGEPInstruction *>(ki);
     ref<Expr> base = eval(ki, 0, state).value;
     if (LogPointer)
-    specialFunctionHandler->trackPointer(state, ki, base, true);
+      trackPointer(state, ki, base, true);
     for (std::vector<std::pair<unsigned, uint64_t>>::iterator
              it = kgepi->indices.begin(),
              ie = kgepi->indices.end();
@@ -3352,6 +3419,19 @@ void Executor::terminateState(ExecutionState &state) {
       specialFunctionHandler->logTaint(taint_buffer.get());
     }
   }
+
+  if (LogPointer){
+    while(!pointer_buffer.empty()){
+      specialFunctionHandler->logPointer(pointer_buffer.get());
+    }
+  }
+
+  if (LogMemory){
+    while(!memory_buffer.empty()){
+      specialFunctionHandler->logMemory(memory_buffer.get());
+    }
+  }
+
 
   interpreterHandler->incPathsExplored();
 
