@@ -22,6 +22,7 @@
 #include "StatsTracker.h"
 #include "TimingSolver.h"
 #include "UserSearcher.h"
+#include  "CircularBuffer.h"
 
 #include "klee/Common.h"
 #include "klee/Config/Version.h"
@@ -68,6 +69,7 @@
 #include "llvm/Support/Path.h"
 #include "llvm/Support/Process.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 
 #if LLVM_VERSION_CODE < LLVM_VERSION(3, 5)
 #include "llvm/Support/CallSite.h"
@@ -87,7 +89,6 @@
 #include <vector>
 
 #include <sys/mman.h>
-#include <CircularBuffer.h>
 #include <cxxabi.h>
 #include <errno.h>
 
