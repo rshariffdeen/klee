@@ -3388,12 +3388,6 @@ void Executor::terminateState(ExecutionState &state) {
     }
   }
 
-  if (LogMemory){
-    while(!memory_buffer.empty()){
-      specialFunctionHandler->logMemory(memory_buffer.get());
-    }
-  }
-
 
   interpreterHandler->incPathsExplored();
 
