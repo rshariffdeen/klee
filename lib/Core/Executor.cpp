@@ -1221,7 +1221,7 @@ void Executor::trackPointer(ExecutionState &state,
     type = "POINTER";
 
   std::string log_message = source_loc + " : " + type + " : " + res + "\n";
-  memory_buffer.put(log_message);
+  pointer_buffer.put(log_message);
 
 }
 
