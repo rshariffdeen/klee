@@ -1247,10 +1247,16 @@ void Executor::trackTaintArg(ExecutionState &state,
     std::string type_str = "argument";
     std::string directory = scope->getFile()->getDirectory();
     std::string filename = scope->getFile()->getFilename();
+    std::string filepath;
+    if (filename.at(0) != '/')
+        filepath = directory + "/" + filename;
+    else
+        filepath = filename;
+
     unsigned line = prog->getLine();
     unsigned column = index;
     unsigned address = 0;
-    std::string source_loc = directory + "/" + filename  + ":" + std::to_string(line) +  ":" + std::to_string(column) + ":" + std::to_string(address);
+    std::string source_loc = filepath  + ":" + std::to_string(line) +  ":" + std::to_string(column) + ":" + std::to_string(address);
     if (source_loc.find("/klee", 0) == std::string::npos) {
         std::string log_message = source_loc + " : " + type_str + " : " + res + "\n";
         taint_buffer.put(log_message);
