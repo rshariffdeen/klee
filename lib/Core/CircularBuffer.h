@@ -1,11 +1,23 @@
 template <class T>
 class circular_buffer {
+private:
+  std::mutex mutex_;
+  std::unique_ptr<T[]> buf_;
+  size_t head_ = 0;
+  size_t tail_ = 0;
+  size_t max_size_;
+  bool full_ = 0;
 public:
     explicit circular_buffer(size_t size) :
                                             buf_(std::unique_ptr<T[]>(new T[size])),
                                             max_size_(size)
     {
       //empty constructor
+    }
+
+    void resize(size_t size){
+      buf_ = std::unique_ptr<T[]>(new T[size]);
+      max_size_ = size;
     }
 
     void reset()
@@ -89,14 +101,6 @@ public:
       return val;
     }
 
-
-  private:
-    std::mutex mutex_;
-    std::unique_ptr<T[]> buf_;
-    size_t head_ = 0;
-    size_t tail_ = 0;
-    const size_t max_size_;
-    bool full_ = 0;
   };
 
 

@@ -257,6 +257,12 @@ cl::opt<bool> EmitAllErrors(
     cl::desc("Generate tests cases for all errors "
              "(default=off, i.e. one per (error,instruction) pair)"));
 
+cl::opt<unsigned> TaintLimit("max-taint-limit", cl::init(TAINT_BUFFER_SIZE),
+                             cl::desc("Limit the number of expressions to collect taint"));
+cl::opt<unsigned> PointerLimit("max-pointer-limit", cl::init(POINTER_BUFFER_SIZE),
+                               cl::desc("Limit the number of pointers to collect taint"));
+
+
 
 enum class ExternalCallPolicy {
   None,     // No external calls allowed
@@ -3151,6 +3157,13 @@ void Executor::run(ExecutionState &initialState) {
     hit_list.insert(LocHit);
     LocHit = "ACTIVE";
   }
+
+  //initialize buffers for taint
+
+  if (TaintLimit != TAINT_BUFFER_SIZE)
+      taint_buffer.resize(TaintLimit);
+  if (PointerLimit != POINTER_BUFFER_SIZE)
+      pointer_buffer.resize(PointerLimit);
 
 
   if (usingSeeds) {
