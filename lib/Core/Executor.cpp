@@ -1488,6 +1488,20 @@ void Executor::executeCall(ExecutionState &state, KInstruction *ki, Function *f,
 
       // va_arg is handled by caller and intrinsic lowering, see comment for
       // ExecutionState::varargs
+    case Intrinsic::fabs: {
+      ref<ConstantExpr> arg =
+          toConstant(state, arguments[0], "floating point");
+      if (!fpWidthToSemantics(arg->getWidth()))
+        return terminateStateOnExecError(
+            state, "Unsupported intrinsic llvm.fabs call");
+
+      llvm::APFloat Res(*fpWidthToSemantics(arg->getWidth()),
+                        arg->getAPValue());
+      Res = llvm::abs(Res);
+
+      bindLocal(ki, state, ConstantExpr::alloc(Res.bitcastToAPInt()));
+      break;
+    }
     case Intrinsic::vastart: {
       StackFrame &sf = state.stack.back();
       //                errs() << "\n[ExecuteCall] 1276\n";
