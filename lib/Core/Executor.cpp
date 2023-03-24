@@ -1459,6 +1459,29 @@ void Executor::printDebugInstructions(ExecutionState &state) {
   }
 }
 
+
+static inline const llvm::fltSemantics *fpWidthToSemantics(unsigned width) {
+  switch (width) {
+#if LLVM_VERSION_CODE >= LLVM_VERSION(4, 0)
+  case Expr::Int32:
+    return &llvm::APFloat::IEEEsingle();
+  case Expr::Int64:
+    return &llvm::APFloat::IEEEdouble();
+  case Expr::Fl80:
+    return &llvm::APFloat::x87DoubleExtended();
+#else
+  case Expr::Int32:
+    return &llvm::APFloat::IEEEsingle;
+  case Expr::Int64:
+    return &llvm::APFloat::IEEEdouble;
+  case Expr::Fl80:
+    return &llvm::APFloat::x87DoubleExtended;
+#endif
+  default:
+    return 0;
+  }
+}
+
 void Executor::stepInstruction(ExecutionState &state) {
   printDebugInstructions(state);
   if (statsTracker)
@@ -1755,27 +1778,6 @@ Function *Executor::getTargetFunction(Value *calledVal, ExecutionState &state) {
 /// TODO remove?
 static bool isDebugIntrinsic(const Function *f, KModule *KM) { return false; }
 
-static inline const llvm::fltSemantics *fpWidthToSemantics(unsigned width) {
-  switch (width) {
-#if LLVM_VERSION_CODE >= LLVM_VERSION(4, 0)
-  case Expr::Int32:
-    return &llvm::APFloat::IEEEsingle();
-  case Expr::Int64:
-    return &llvm::APFloat::IEEEdouble();
-  case Expr::Fl80:
-    return &llvm::APFloat::x87DoubleExtended();
-#else
-  case Expr::Int32:
-    return &llvm::APFloat::IEEEsingle;
-  case Expr::Int64:
-    return &llvm::APFloat::IEEEdouble;
-  case Expr::Fl80:
-    return &llvm::APFloat::x87DoubleExtended;
-#endif
-  default:
-    return 0;
-  }
-}
 
 int nthSubstr(int n, const std::string& s,
               const std::string& p) {
