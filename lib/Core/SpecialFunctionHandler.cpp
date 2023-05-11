@@ -141,6 +141,12 @@ static SpecialFunctionHandler::HandlerInfo handlerInfo[] = {
   add("__ubsan_handle_shift_out_of_bounds", handleShiftOverflow, false),
   // -fsanitize=float-cast-overflow
   add("__ubsan_handle_float_cast_overflow", handleCastOverflow, false),
+  add("__ubsan_handle_negate_overflow", handleNegOverflow, false),
+  add("__ubsan_handle_type_mismatch_v1", handleTypeMisMatch, false),
+  add("__ubsan_handle_negate_overflow", handleNegOverflow, false),
+  add("__ubsan_handle_out_of_bounds", handleOutOfBounds, false),
+  add("__ubsan_handle_pointer_overflow", handlePointerOverflow, false),
+
 
 #undef addDNR
 #undef add
@@ -743,6 +749,7 @@ void SpecialFunctionHandler::handleRealloc(ExecutionState &state,
   ref<Expr> address = arguments[0];
   ref<Expr> size = arguments[1];
 
+  logMemory(state, target->inst->getType(), address,  size, size);
   Executor::StatePair zeroSize = executor.fork(state, 
                                                Expr::createIsZero(size), 
                                                true);
@@ -948,9 +955,39 @@ void SpecialFunctionHandler::handleShiftOverflow(ExecutionState &state,
                                  Executor::Overflow);
 }
 
+
+void SpecialFunctionHandler::handleOutOfBounds(ExecutionState &state,
+                                                 KInstruction *target,
+                                                 std::vector<ref<Expr> > &arguments) {
+  executor.terminateStateOnError(state, "out of bounds error",
+                                 Executor::Overflow);
+}
+
+void SpecialFunctionHandler::handlePointerOverflow(ExecutionState &state,
+                                               KInstruction *target,
+                                               std::vector<ref<Expr> > &arguments) {
+  executor.terminateStateOnError(state, "overflow of pointer",
+                                 Executor::Overflow);
+}
+
 void SpecialFunctionHandler::handleDivRemOverflow(ExecutionState &state,
                                                KInstruction *target,
                                                std::vector<ref<Expr> > &arguments) {
   executor.terminateStateOnError(state, "overflow on division or remainder",
+                                 Executor::Overflow);
+}
+
+
+void SpecialFunctionHandler::handleNegOverflow(ExecutionState &state,
+                                               KInstruction *target,
+                                               std::vector<ref<Expr> > &arguments) {
+  executor.terminateStateOnError(state, "overflow on negation",
+                                 Executor::Overflow);
+}
+
+void SpecialFunctionHandler::handleTypeMisMatch(ExecutionState &state,
+                                               KInstruction *target,
+                                               std::vector<ref<Expr> > &arguments) {
+  executor.terminateStateOnError(state, "type mismatch",
                                  Executor::Overflow);
 }
