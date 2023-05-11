@@ -959,8 +959,8 @@ void SpecialFunctionHandler::handleShiftOverflow(ExecutionState &state,
 void SpecialFunctionHandler::handleOutOfBounds(ExecutionState &state,
                                                  KInstruction *target,
                                                  std::vector<ref<Expr> > &arguments) {
-  executor.terminateStateOnError(state, "out of bounds error",
-                                 Executor::Overflow);
+//  executor.terminateStateOnError(state, "out of bound pointer",
+//                                 Executor::Overflow);
 }
 
 void SpecialFunctionHandler::handlePointerOverflow(ExecutionState &state,
