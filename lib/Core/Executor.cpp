@@ -1263,10 +1263,9 @@ void Executor::trackTaintArg(ExecutionState &state,
     unsigned column = index;
     unsigned address = 0;
     std::string source_loc = filepath  + ":" + std::to_string(line) +  ":" + std::to_string(column) + ":" + std::to_string(address);
-    if (source_loc.find("/klee", 0) == std::string::npos) {
-        std::string log_message = source_loc + " : " + type_str + " : " + res + "\n";
-        taint_buffer.put(log_message);
-    }
+    std::string log_message = source_loc + " : " + type_str + " : " + res + "\n";
+    taint_buffer.put(log_message);
+
   }
 
 }
@@ -1295,10 +1294,10 @@ void Executor::trackTaint(ExecutionState &state,
     type = "integer";
   }
 
-  if (source_loc.find("/klee", 0) == std::string::npos) {
-    std::string log_message = source_loc + " : " + type + " : " + res + "\n";
-    taint_buffer.put(log_message);
-  }
+
+  std::string log_message = source_loc + " : " + type + " : " + res + "\n";
+  taint_buffer.put(log_message);
+
 
 }
 
