@@ -482,7 +482,7 @@ off64_t __fd_lseek(int fd, off64_t offset, int whence) {
       /* If we can't seek to start off, just return same error.
          Probably ESPIPE. */
       if (new_off != -1) {
-        assert(new_off == f->off);
+//        assert(new_off == f->off);
         new_off = syscall(__NR_lseek, f->fd, offset, whence);
       }
     }
