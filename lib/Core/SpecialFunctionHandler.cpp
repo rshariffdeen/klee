@@ -50,16 +50,8 @@ namespace {
                             "emitting an error (default=false)"));
 
   cl::opt<bool>
-      SilentKleeVerify("silent-klee-verify",
-                       cl::init(false),
-                       cl::desc("Silently terminate paths with an infeasible "
-                                "condition given to klee_assert() rather than "
-                                "emitting an error (default=false)"));
-
-
-  cl::opt<bool>
-      DisableKleeAssume("disable-klee-assume", cl::init(false),
-                cl::desc("Disable pre-conditions defined in klee_assume (default=off)"));
+      DisableKleeExpect("disable-klee-expect", cl::init(false),
+                cl::desc("Disable pre-conditions defined in klee_expect (default=off)"));
 
   cl::opt<bool>
       DisableKleeVerify("disable-klee-verify", cl::init(false),
@@ -498,7 +490,7 @@ void SpecialFunctionHandler::handleExpect(ExecutionState &state,
   if (e->getWidth() != Expr::Bool)
     e = NeExpr::create(e, ConstantExpr::create(0, e->getWidth()));
 
-  if (!DisableKleeVerify)
+  if (!DisableKleeExpect)
     executor.addConstraint(state, e);
 }
 
