@@ -108,6 +108,7 @@ extern "C" {
   /* The following intrinsics are primarily intended for internal use
      and may have peculiar semantics. */
 
+  void klee_verify(uintptr_t condition);
   void klee_assume(uintptr_t condition);
   void klee_warning(const char *message);
   void klee_warning_once(const char *message);

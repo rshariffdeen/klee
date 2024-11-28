@@ -152,6 +152,12 @@ void klee_assume(uintptr_t x) {
   }
 }
 
+void klee_verify(uintptr_t x) {
+  if (!x) {
+    report_internal_error("invalid klee_verify");
+  }
+}
+
 #define KLEE_GET_VALUE_STUB(suffix, type)	\
 	type klee_get_value##suffix(type x) { \
 		return x; \
