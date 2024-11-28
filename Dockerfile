@@ -12,12 +12,9 @@ RUN git clone https://github.com/rshariffdeen/klee-uclibc.git . && \
     git checkout ${KLEE_UCLIBC_VERSION} && \
     CC=/opt/llvm-6/bin/clang ./configure --make-llvm-lib && \
     make -j32
-ENV KLEE_VERSION=concolic
+
 WORKDIR /klee
-ARG KLEE_REVISION=concolic
-RUN git clone https://github.com/rshariffdeen/klee.git source \
- && cd source \
- && git checkout "${KLEE_REVISION}"
+ADD . /klee/source
 RUN mkdir build && \
     cd build && \
     cmake \
