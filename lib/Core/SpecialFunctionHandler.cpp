@@ -101,6 +101,7 @@ static SpecialFunctionHandler::HandlerInfo handlerInfo[] = {
   add("free", handleFree, false),
   add("klee_assume", handleAssume, false),
     add("klee_verify", handleVerify, false),
+    add("klee_expect", handleExpect, false),
   add("klee_check_memory_access", handleCheckMemoryAccess, false),
   add("klee_get_valuef", handleGetValue, true),
   add("klee_get_valued", handleGetValue, true),
