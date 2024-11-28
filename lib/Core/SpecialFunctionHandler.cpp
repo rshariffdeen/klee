@@ -461,6 +461,9 @@ void SpecialFunctionHandler::handleMalloc(ExecutionState &state,
 void SpecialFunctionHandler::handleAssume(ExecutionState &state,
                             KInstruction *target,
                             std::vector<ref<Expr> > &arguments) {
+
+  if (DisableKleeAssume)
+    return;
   assert(arguments.size()==1 && "invalid number of arguments to klee_assume");
   
   ref<Expr> e = arguments[0];
@@ -480,9 +483,22 @@ void SpecialFunctionHandler::handleAssume(ExecutionState &state,
                                      Executor::User);
     }
   } else {
-    if (!DisableKleeAssume)
       executor.addConstraint(state, e);
   }
+}
+
+void SpecialFunctionHandler::handleExpect(ExecutionState &state,
+                                          KInstruction *target,
+                                          std::vector<ref<Expr> > &arguments) {
+  assert(arguments.size()==1 && "invalid number of arguments to klee_expect");
+
+  ref<Expr> e = arguments[0];
+
+  if (e->getWidth() != Expr::Bool)
+    e = NeExpr::create(e, ConstantExpr::create(0, e->getWidth()));
+
+  if (!DisableKleeVerify)
+    executor.addConstraint(state, e);
 }
 
 
@@ -496,21 +512,9 @@ void SpecialFunctionHandler::handleVerify(ExecutionState &state,
   if (e->getWidth() != Expr::Bool)
     e = NeExpr::create(e, ConstantExpr::create(0, e->getWidth()));
 
-  bool res;
-  bool success __attribute__ ((unused)) = executor.solver->mustBeFalse(state, e, res);
-  assert(success && "FIXME: Unhandled solver failure");
-  if (res) {
-    if (SilentKleeVerify) {
-      executor.terminateState(state);
-    } else {
-      executor.terminateStateOnError(state,
-                                     "invalid klee_verify call (provably false)",
-                                     Executor::User);
-    }
-  } else {
-    if (!DisableKleeVerify)
-      executor.addConstraint(state, e);
-  }
+  if (!DisableKleeVerify)
+    executor.addConstraint(state, e);
+
 }
 
 void SpecialFunctionHandler::handleIsSymbolic(ExecutionState &state,

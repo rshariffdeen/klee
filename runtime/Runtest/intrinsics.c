@@ -152,6 +152,12 @@ void klee_assume(uintptr_t x) {
   }
 }
 
+void klee_expect(uintptr_t x) {
+  if (!x) {
+    report_internal_error("invalid klee_expect");
+  }
+}
+
 void klee_verify(uintptr_t x) {
   if (!x) {
     report_internal_error("invalid klee_verify");

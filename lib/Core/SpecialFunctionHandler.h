@@ -109,6 +109,7 @@ namespace klee {
     HANDLER(handleAssert);
     HANDLER(handleAssertFail);
     HANDLER(handleAssume);
+    HANDLER(handleExpect);
     HANDLER(handleVerify);
     HANDLER(handleCalloc);
     HANDLER(handleCheckMemoryAccess);
