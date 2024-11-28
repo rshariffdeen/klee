@@ -48,6 +48,24 @@ namespace {
                    cl::desc("Silently terminate paths with an infeasible "
                             "condition given to klee_assume() rather than "
                             "emitting an error (default=false)"));
+
+  cl::opt<bool>
+      SilentKleeVerify("silent-klee-verify",
+                       cl::init(false),
+                       cl::desc("Silently terminate paths with an infeasible "
+                                "condition given to klee_assert() rather than "
+                                "emitting an error (default=false)"));
+
+
+  cl::opt<bool>
+      DisableKleeAssume("disable-klee-assume", cl::init(false),
+                cl::desc("Disable pre-conditions defined in klee_assume (default=off)"));
+
+  cl::opt<bool>
+      DisableKleeVerify("disable-klee-verify", cl::init(false),
+                cl::desc("Disable post-conditions defined in klee_verify (default=off)"));
+
+
 }
 
 
@@ -82,6 +100,7 @@ static SpecialFunctionHandler::HandlerInfo handlerInfo[] = {
   add("calloc", handleCalloc, true),
   add("free", handleFree, false),
   add("klee_assume", handleAssume, false),
+    add("klee_verify", handleVerify, false),
   add("klee_check_memory_access", handleCheckMemoryAccess, false),
   add("klee_get_valuef", handleGetValue, true),
   add("klee_get_valued", handleGetValue, true),
@@ -461,7 +480,36 @@ void SpecialFunctionHandler::handleAssume(ExecutionState &state,
                                      Executor::User);
     }
   } else {
-    executor.addConstraint(state, e);
+    if (!DisableKleeAssume)
+      executor.addConstraint(state, e);
+  }
+}
+
+
+void SpecialFunctionHandler::handleVerify(ExecutionState &state,
+                                          KInstruction *target,
+                                          std::vector<ref<Expr> > &arguments) {
+  assert(arguments.size()==1 && "invalid number of arguments to klee_verify");
+
+  ref<Expr> e = arguments[0];
+
+  if (e->getWidth() != Expr::Bool)
+    e = NeExpr::create(e, ConstantExpr::create(0, e->getWidth()));
+
+  bool res;
+  bool success __attribute__ ((unused)) = executor.solver->mustBeFalse(state, e, res);
+  assert(success && "FIXME: Unhandled solver failure");
+  if (res) {
+    if (SilentKleeVerify) {
+      executor.terminateState(state);
+    } else {
+      executor.terminateStateOnError(state,
+                                     "invalid klee_verify call (provably false)",
+                                     Executor::User);
+    }
+  } else {
+    if (!DisableKleeVerify)
+      executor.addConstraint(state, e);
   }
 }
 
